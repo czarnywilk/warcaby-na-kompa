@@ -1,22 +1,30 @@
+package table;
+
+import handlers.GameManager;
+import multiplayer.PlaceholderUtility;
+import multiplayer.serialized.Game;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
-import java.awt.image.ImageProducer;
 import java.io.File;
 import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class Table extends java.awt.Frame {
-    public JButton buttons[] = new JButton[32];
-    MyField tablica[] = new MyField[32];
-    int nrGracza = 1;
+public class TableOnline extends java.awt.Frame {
+
     boolean select = false;
     boolean hit = false;
-    MyField selectField = new MyField();
-    MyField targetField = new MyField();
+
+    public JButton[] buttons = new JButton[32];
+    private static Field[] tablica = new Field[32];
+    private Field selectField = new Field();
+    private Field targetField = new Field();
+
     BufferedImage pawn_white;
     {
         try {
@@ -54,184 +62,260 @@ public class Table extends java.awt.Frame {
     ImageIcon pblack = new ImageIcon(pawn_black);
     ImageIcon qblack = new ImageIcon(queen_black);
 
-    Table(){
-        int licznik = 0;
-        setSize(900,900);
-        for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 4; j++){
-                tablica[i*4 + j] = new MyField(j*2+((i%2))+1, i+1, 0);
-                //else tablica[i*4 + j] = new MyField(j*2+((i%2)), i+1, 0);
-                if (i<2) tablica[i*4 + j].setPawn(1);
-                else if (i>5) tablica[i*4 + j].setPawn(2);
-            }
-        }
-        for (int i = 0; i < 8; i++){
-            for (int j = 0; j < 8; j++){
-                if ((j % 2 == 0 && i % 2 == 0) || (i%2 == 1 && j % 2 == 1)){
-                    buttons[licznik] = new JButton();
-                    buttons[licznik].setFocusable(false);
-                    buttons[licznik].setBounds(100 * j + 50,100 * (7-i) + 50,100,100);
-                    buttons[licznik].setBackground(Color.decode("#03A9F4"));
-                    buttons[licznik].setName(Integer.toString(licznik));
-                    buttons[licznik].addMouseListener(new MouseListener() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            JButton a = (JButton) e.getSource();
-                            System.out.println(a.getName());
-                            buttonClicked(Integer.parseInt(a.getName()));
-                        }
+    String tableColor = "#03A9F4";
+    public static String cleanBoard = "11111111000000000000000022222222";
+    private int aktualnyGracz;
+    private int kluczGracza;
+    private Timer timer = new Timer();
 
-                        @Override
-                        public void mousePressed(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseReleased(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseEntered(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseExited(MouseEvent e) {
-
-                        }
-                    });
-                    add(buttons[licznik]);
-                    licznik++;
+    public TableOnline(){
+        try {
+            int licznik = 0;
+            setSize(900, 900);
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 4; j++) {
+                    tablica[i * 4 + j] = new Field(j * 2 + ((i % 2)) + 1, i + 1, 0);
+                    //else tablica[i*4 + j] = new Field(j*2+((i%2)), i+1, 0);
+                    if (i < 2) tablica[i * 4 + j].setPawn(1);
+                    else if (i > 5) tablica[i * 4 + j].setPawn(2);
                 }
             }
+            for (int i = 0; i < 8; i++) {
+                for (int j = 0; j < 8; j++) {
+                    if ((j % 2 == 0 && i % 2 == 0) || (i % 2 == 1 && j % 2 == 1)) {
+                        buttons[licznik] = new JButton();
+                        buttons[licznik].setFocusable(false);
+                        buttons[licznik].setBounds(100 * j + 50, 100 * (7 - i) + 50, 100, 100);
+                        buttons[licznik].setBackground(Color.decode(tableColor));
+                        buttons[licznik].setName(Integer.toString(licznik));
+                        buttons[licznik].addMouseListener(new MouseListener() {
+                            @Override
+                            public void mouseClicked(MouseEvent e) {
+                                JButton a = (JButton) e.getSource();
+                                System.out.println(a.getName());
+                                buttonClicked(Integer.parseInt(a.getName()));
+                            }
+
+                            @Override
+                            public void mousePressed(MouseEvent e) {
+
+                            }
+
+                            @Override
+                            public void mouseReleased(MouseEvent e) {
+
+                            }
+
+                            @Override
+                            public void mouseEntered(MouseEvent e) {
+
+                            }
+
+                            @Override
+                            public void mouseExited(MouseEvent e) {
+
+                            }
+                        });
+                        add(buttons[licznik]);
+                        licznik++;
+                    }
+                }
+            }
+            setBackground(Color.WHITE);
+            setLayout(null);
+            setVisible(true);
+
+            Integer playerId = GameManager.getUserPlayer().getId();
+            Integer whiteId = GameManager.getUserGame().getWhitePlayerId();
+            Integer currentId = GameManager.getUserGame().getCurrentPlayerId();
+            aktualnyGracz =  currentId.equals(whiteId) ? 1 : 2;
+            kluczGracza = playerId.equals(whiteId) ? 1 : 2;
+
+            System.out.println(playerId + " --- " + currentId);
+
+            // refresh every 3 seconds
+            if (aktualnyGracz != kluczGracza) {
+                waitForTurn();
+            }
+
+            wyswietlPlansze();
         }
-        setBackground(Color.WHITE);
-        setLayout(null);
-        setVisible(true);
-        wyswietlPlansze();
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void wyswietlPlansze() {
         for (int i = 0; i < 32; i++){
-            if (nrGracza == 1){
+            if (kluczGracza == 1){
                 if (tablica[i].getPawn() == 1) {
                     buttons[i].setIcon(pwhite);
-                    buttons[i].setBackground(Color.decode("#03A9F4"));
+                    buttons[i].setBackground(Color.decode(tableColor));
                 }
                 else if (tablica[i].getPawn() == 2) {
                     buttons[i].setIcon(pblack);
-                    buttons[i].setBackground(Color.decode("#03A9F4"));
+                    buttons[i].setBackground(Color.decode(tableColor));
                 }
                 else if (tablica[i].getPawn() == 0) {
-                    buttons[i].setForeground(Color.decode("#03A9F4"));
-                    buttons[i].setBackground(Color.decode("#03A9F4"));
+                    buttons[i].setForeground(Color.decode(tableColor));
+                    buttons[i].setBackground(Color.decode(tableColor));
                     buttons[i].setIcon(null);
                 }
                 else if (tablica[i].getPawn() == 3) {
                     buttons[i].setIcon(qwhite);
-                    buttons[i].setBackground(Color.decode("#03A9F4"));
+                    buttons[i].setBackground(Color.decode(tableColor));
                 }
                 else{
                     buttons[i].setIcon(qblack);
-                    buttons[i].setBackground(Color.decode("#03A9F4"));
+                    buttons[i].setBackground(Color.decode(tableColor));
                 }
             }
             else{
                 if (tablica[i].getPawn() == 1) {
                     buttons[31-i].setIcon(pwhite);
-                    buttons[31-i].setBackground(Color.decode("#03A9F4"));
+                    buttons[31-i].setBackground(Color.decode(tableColor));
                 }
                 else if (tablica[i].getPawn() == 2) {
                     buttons[31-i].setIcon(pblack);
-                    buttons[31-i].setBackground(Color.decode("#03A9F4"));
+                    buttons[31-i].setBackground(Color.decode(tableColor));
                 }
                 else if (tablica[i].getPawn() == 0) {
-                    buttons[31-i].setForeground(Color.decode("#03A9F4"));
-                    buttons[31-i].setBackground(Color.decode("#03A9F4"));
+                    buttons[31-i].setForeground(Color.decode(tableColor));
+                    buttons[31-i].setBackground(Color.decode(tableColor));
                     buttons[31-i].setIcon(null);
                 }
                 else if (tablica[i].getPawn() == 3) {
                     buttons[31-i].setIcon(qwhite);
-                    buttons[31-i].setBackground(Color.decode("#03A9F4"));
+                    buttons[31-i].setBackground(Color.decode(tableColor));
                 }
                 else{
                     buttons[31-i].setIcon(qblack);
-                    buttons[31-i].setBackground(Color.decode("#03A9F4"));
+                    buttons[31-i].setBackground(Color.decode(tableColor));
                 }
             }
-        }
-    }
-
-    class MyField{
-        protected int x,y,pawn;
-
-        public MyField(int x, int y, int pawn){
-            this.x = x;
-            this.y = y;
-            this.pawn = pawn;
-        }
-
-        public MyField(){
-            this.x = 0;
-            this.y = 0;
-            this.pawn = 5;
-        }
-
-        public void setPawn(int pawn){
-            this.pawn = pawn;
-        }
-
-        public int getPawn(){
-            return this.pawn;
-        }
-
-        public int getX(){
-            if (nrGracza == 1) return this.x;
-            else return 9-this.x;
-        }
-
-        public int getY(){
-            if (nrGracza == 1) return this.y;
-            else return 9-this.y;
         }
     }
 
     public void endTurn(){
-        if (nrGracza == 1) nrGracza=2;
-        else nrGracza = 1;
+        wyswietlPlansze();
+        sendData();
         if (!canPlayerPlay()){
-            System.out.println("Gracz nr " + nrGracza + " przegrał!");
+            System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " wygrał!");
+            //TODO w tym miejscu gracz wygrywa - możecie dodać, co tam Wam pasuje
+        }
+    }
+
+    public void startTurn(){
+        if (!canPlayerPlay()){
+            System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " przegrał!");
+            //TODO w tym miejscu gracz przegrywa
         }
         wyswietlPlansze();
+        System.out.println("start turn: " + aktualnyGracz);
     }
+
+    // =========================================================================================
+    public void getData(){
+        GameManager.getGame(GameManager.getUserGame());
+        GameManager.setServerCallbackListener(new GameManager.ServerCallbackListener() {
+            @Override
+            public void onServerResponse(Object obj) {
+                Game game = (Game)obj;
+
+                if (game.getCurrentPlayerId().equals(GameManager.getUserPlayer().getId())) {
+
+
+                    aktualnyGracz = GameManager.getUserGame()
+                            .switchPlayers().equals(game.getWhitePlayerId()) ? 1 : 2;
+
+                    GameManager.setUserGame(game);
+                    stringToBoard(game.getBoard());
+
+                    timer.cancel();
+
+                    startTurn();
+                }
+            }
+
+            @Override
+            public void onServerFailed() {
+                //TODO jesli nie udalo nie zaktualizowac gry
+            }
+        });
+    }
+
+    public void sendData(){
+        Game game = GameManager.getUserGame();
+
+        aktualnyGracz = game.switchPlayers().equals(game.getWhitePlayerId()) ? 1 : 2;
+
+        game.setBoard(boardToString());
+
+        GameManager.updateGame(game);
+        GameManager.setServerCallbackListener(new GameManager.ServerCallbackListener() {
+            @Override
+            public void onServerResponse(Object obj) {
+                waitForTurn();
+            }
+
+            @Override
+            public void onServerFailed() {
+                //TODO jesli nie udalo nie wysłać gry
+            }
+        });
+    }
+
+    public void waitForTurn(){
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                if (PlaceholderUtility.hasInternetAccess())
+                    getData();
+                System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " czeka na przeciwnika...");
+            }
+        }, 0, 3000);
+    }
+
+    public static void stringToBoard (String input){
+        for (int i = 0; i < 32; i++){
+            tablica[i].setPawn(Character.getNumericValue(input.charAt(i)));
+        }
+    }
+    public static String boardToString(){
+        String result = "";
+        for (int i = 0; i < 32; i++){
+            result += Integer.toString(tablica[i].pawn);
+        }
+        return result;
+    }
+    // =========================================================================================
 
     public boolean canPlayerPlay(){
         for (int i=0; i<32; i++){
-            if (tablica[i].getPawn()==nrGracza){
+            if (tablica[i].getPawn()==aktualnyGracz){
                 if (pawnCanMove(tablica[i]) || pawnCanHit(tablica[i])) return true;
             }
-            if (tablica[i].getPawn()==nrGracza+2){
+            if (tablica[i].getPawn()==aktualnyGracz+2){
                 if (queenCanMove(tablica[i]) || queenCanHit(tablica[i])) return true;
             }
         }
         return false;
     }
 
-    public void lightPath(MyField pole){
+    public void lightPath(Field pole){
         int index = getIndex(pole);
-        int x = pole.getX();
-        int y = pole.getY();
+        int x = pole.getX(aktualnyGracz == 1);
+        int y = pole.getY(aktualnyGracz == 1);
         buttons[index].setBackground(Color.decode("#00DC29"));
-        if (pole.getPawn()==nrGracza){
+        if (pole.getPawn()==aktualnyGracz){
             if(pawnCanHit(pole)){
                 if (x>1){
-                    if (getFieldFromAxis(x-1, y+1).getPawn()!=nrGracza && getFieldFromAxis(x-1, y+1).getPawn()!=nrGracza+2 && getFieldFromAxis(x-1,y+1).getPawn()!=0){
+                    if (getFieldFromAxis(x-1, y+1).getPawn()!=aktualnyGracz && getFieldFromAxis(x-1, y+1).getPawn()!=aktualnyGracz+2 && getFieldFromAxis(x-1,y+1).getPawn()!=0){
                         if (getFieldFromAxis(x-2,y+2).getPawn()==0) buttons[getIndex(getFieldFromAxis(x-2,y+2))].setBackground(Color.decode("#DC0005"));
                     }
                 }
                 if (x<8){
-                    if (getFieldFromAxis(x+1, y+1).getPawn()!=nrGracza && getFieldFromAxis(x+1, y+1).getPawn()!=nrGracza+2 && getFieldFromAxis(x+1,y+1).getPawn()!=0){
+                    if (getFieldFromAxis(x+1, y+1).getPawn()!=aktualnyGracz && getFieldFromAxis(x+1, y+1).getPawn()!=aktualnyGracz+2 && getFieldFromAxis(x+1,y+1).getPawn()!=0){
                         if (getFieldFromAxis(x+2,y+2).getPawn()==0) buttons[getIndex(getFieldFromAxis(x+2,y+2))].setBackground(Color.decode("#DC0005"));
                     }
                 }
@@ -249,10 +333,10 @@ public class Table extends java.awt.Frame {
                 }
             }
         }
-        else if (pole.getPawn()==nrGracza+2){
+        else if (pole.getPawn()==aktualnyGracz+2){
             if (queenCanHit(pole)){
                 int iloscPionkowPodRzad = 0;
-                MyField poleTestowe = new MyField();
+                Field poleTestowe = new Field();
 
                 if (x>2 && y<7){
                     int x1 = x;
@@ -261,7 +345,7 @@ public class Table extends java.awt.Frame {
                         x1--;
                         y1++;
                         if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                            if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                            if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                             else{
                                 iloscPionkowPodRzad++;
                                 if (iloscPionkowPodRzad>1) break;
@@ -284,7 +368,7 @@ public class Table extends java.awt.Frame {
                         x1--;
                         y1--;
                         if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                            if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                            if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                             else{
                                 iloscPionkowPodRzad++;
                                 if (iloscPionkowPodRzad>1) break;
@@ -307,7 +391,7 @@ public class Table extends java.awt.Frame {
                         x1++;
                         y1++;
                         if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                            if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                            if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                             else{
                                 iloscPionkowPodRzad++;
                                 if (iloscPionkowPodRzad>1) break;
@@ -330,7 +414,7 @@ public class Table extends java.awt.Frame {
                         x1++;
                         y1--;
                         if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                            if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                            if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                             else{
                                 iloscPionkowPodRzad++;
                                 if (iloscPionkowPodRzad>1) break;
@@ -394,25 +478,25 @@ public class Table extends java.awt.Frame {
         }
     }
 
-    public int getIndex(MyField pole){
+    public int getIndex(Field pole){
         for (int i = 0; i<32; i++){
-            if (tablica[i] == pole) return (nrGracza==1 ? i : 31-i);
+            if (tablica[i] == pole) return (aktualnyGracz==1 ? i : 31-i);
         }
         return 32;
     }
 
-    public MyField getFieldFromAxis(int x, int y){
-        for(MyField pole: tablica){
-            if (pole.getX() == x && pole.getY() == y) return pole;
+    public Field getFieldFromAxis(int x, int y){
+        for(var pole: tablica){
+            if (pole.getX(aktualnyGracz == 1) == x && pole.getY(aktualnyGracz == 1) == y) return pole;
         }
         return null;
     }
 
-    public boolean pawnCanMove(MyField pole){
-        int x = pole.getX();
-        int y = pole.getY();
-        MyField polePoLewej = new MyField();
-        MyField polePoPrawej = new MyField();
+    public boolean pawnCanMove(Field pole){
+        int x = pole.getX(aktualnyGracz == 1);
+        int y = pole.getY(aktualnyGracz == 1);
+        Field polePoLewej = new Field();
+        Field polePoPrawej = new Field();
         if (x>1 && y<8){
             polePoLewej = getFieldFromAxis(x-1, y+1);
             if (polePoLewej.getPawn() == 0) return true;
@@ -424,17 +508,17 @@ public class Table extends java.awt.Frame {
         return false;
     }
 
-    public boolean pawnCanHit(MyField pole){
-        int x = pole.getX();
-        int y = pole.getY();
-        MyField polePoLewej = new MyField();
-        MyField polePoPrawej = new MyField();
+    public boolean pawnCanHit(Field pole){
+        int x = pole.getX(aktualnyGracz == 1);
+        int y = pole.getY(aktualnyGracz == 1);
+        Field polePoLewej = new Field();
+        Field polePoPrawej = new Field();
 
         if (x>2 && y<7){
             polePoLewej = getFieldFromAxis(x-1,y+1);
-            if (polePoLewej.getPawn()!=nrGracza && polePoLewej.getPawn()!=nrGracza+2 && polePoLewej.getPawn()!=0){
-                int x1 = polePoLewej.getX();
-                int y1 = polePoLewej.getY();
+            if (polePoLewej.getPawn()!=aktualnyGracz && polePoLewej.getPawn()!=aktualnyGracz+2 && polePoLewej.getPawn()!=0){
+                int x1 = polePoLewej.getX(aktualnyGracz == 1);
+                int y1 = polePoLewej.getY(aktualnyGracz == 1);
                 polePoLewej = getFieldFromAxis(x1-1, y1+1);
                 if (polePoLewej.getPawn()==0) return true;
             }
@@ -442,9 +526,9 @@ public class Table extends java.awt.Frame {
 
         if (x<7 && y<7){
             polePoPrawej = getFieldFromAxis(x+1,y+1);
-            if (polePoPrawej.getPawn()!=nrGracza && polePoPrawej.getPawn()!=nrGracza+2 && polePoPrawej.getPawn()!=0){
-                int x1 = polePoPrawej.getX();
-                int y1 = polePoPrawej.getY();
+            if (polePoPrawej.getPawn()!=aktualnyGracz && polePoPrawej.getPawn()!=aktualnyGracz+2 && polePoPrawej.getPawn()!=0){
+                int x1 = polePoPrawej.getX(aktualnyGracz == 1);
+                int y1 = polePoPrawej.getY(aktualnyGracz == 1);
                 polePoPrawej = getFieldFromAxis(x1+1, y1+1);
                 if (polePoPrawej.getPawn()==0) return true;
             }
@@ -453,10 +537,10 @@ public class Table extends java.awt.Frame {
         return false;
     }
 
-    public boolean queenCanMove(MyField pole){
-        int x = pole.getX();
-        int y = pole.getY();
-        MyField poleTestowe = new MyField();
+    public boolean queenCanMove(Field pole){
+        int x = pole.getX(aktualnyGracz == 1);
+        int y = pole.getY(aktualnyGracz == 1);
+        Field poleTestowe = new Field();
         if (x>1 && y<8){
             poleTestowe = getFieldFromAxis(x-1, y+1);
             if (poleTestowe.getPawn() == 0) return true;
@@ -476,11 +560,11 @@ public class Table extends java.awt.Frame {
         return false;
     }
 
-    public boolean queenCanHit(MyField pole){
-        int x = pole.getX();
-        int y = pole.getY();
+    public boolean queenCanHit(Field pole){
+        int x = pole.getX(aktualnyGracz == 1);
+        int y = pole.getY(aktualnyGracz == 1);
         int iloscPionkowPodRzad = 0;
-        MyField poleTestowe = new MyField();
+        Field poleTestowe = new Field();
 
         if (x>2 && y<7){
             int x1 = x;
@@ -489,7 +573,7 @@ public class Table extends java.awt.Frame {
                 x1--;
                 y1++;
                 if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                    if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                    if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                     else{
                         iloscPionkowPodRzad++;
                         if (iloscPionkowPodRzad>1) break;
@@ -509,7 +593,7 @@ public class Table extends java.awt.Frame {
                 x1--;
                 y1--;
                 if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                    if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                    if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                     else{
                         iloscPionkowPodRzad++;
                         if (iloscPionkowPodRzad>1) break;
@@ -529,7 +613,7 @@ public class Table extends java.awt.Frame {
                 x1++;
                 y1++;
                 if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                    if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                    if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                     else{
                         iloscPionkowPodRzad++;
                         if (iloscPionkowPodRzad>1) break;
@@ -549,7 +633,7 @@ public class Table extends java.awt.Frame {
                 x1++;
                 y1--;
                 if (getFieldFromAxis(x1,y1).getPawn()!=0){
-                    if (getFieldFromAxis(x1,y1).getPawn()==nrGracza || getFieldFromAxis(x1,y1).getPawn()==nrGracza+2) break;
+                    if (getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz || getFieldFromAxis(x1,y1).getPawn()==aktualnyGracz+2) break;
                     else{
                         iloscPionkowPodRzad++;
                         if (iloscPionkowPodRzad>1) break;
@@ -563,22 +647,22 @@ public class Table extends java.awt.Frame {
         return false;
     }
 
-    public boolean checkFieldPawn(MyField start, MyField end){
+    public boolean checkFieldPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
-        int startX = start.getX();
-        int startY = start.getY();
-        int endX = end.getX();
-        int endY = end.getY();
+        int startX = start.getX(aktualnyGracz == 1);
+        int startY = start.getY(aktualnyGracz == 1);
+        int endX = end.getX(aktualnyGracz == 1);
+        int endY = end.getY(aktualnyGracz == 1);
         if ((startX-1 == endX || startX+1 == endX) && startY+1 == endY) return true;
         return false;
     }
 
-    public boolean checkFieldQueen(MyField start, MyField end){
+    public boolean checkFieldQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
-        int startX = start.getX();
-        int startY = start.getY();
-        int endX = end.getX();
-        int endY = end.getY();
+        int startX = start.getX(aktualnyGracz == 1);
+        int startY = start.getY(aktualnyGracz == 1);
+        int endX = end.getX(aktualnyGracz == 1);
+        int endY = end.getY(aktualnyGracz == 1);
         if (startX - endX == startY - endY || startX - endX + (startY - endY) == 0){
             int diffX = endX - startX;
             diffX = diffX >= 0 ? 1 : -1;
@@ -594,12 +678,12 @@ public class Table extends java.awt.Frame {
         else return false;
     }
 
-    public boolean checkHitQueen(MyField start, MyField end){
+    public boolean checkHitQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
-        int startX = start.getX();
-        int startY = start.getY();
-        int endX = end.getX();
-        int endY = end.getY();
+        int startX = start.getX(aktualnyGracz == 1);
+        int startY = start.getY(aktualnyGracz == 1);
+        int endX = end.getX(aktualnyGracz == 1);
+        int endY = end.getY(aktualnyGracz == 1);
         int iloscPionkowPodRzad = 0;
         if (startX - endX == startY - endY || startX - endX + (startY - endY) == 0){
             int diffX = endX - startX;
@@ -610,7 +694,7 @@ public class Table extends java.awt.Frame {
                 startX += diffX;
                 startY += diffY;
                 if (getFieldFromAxis(startX, startY).getPawn()!=0){
-                    if (getFieldFromAxis(startX, startY).getPawn()!=nrGracza && getFieldFromAxis(startX, startY).getPawn()!=nrGracza+2){
+                    if (getFieldFromAxis(startX, startY).getPawn()!=aktualnyGracz && getFieldFromAxis(startX, startY).getPawn()!=aktualnyGracz+2){
                         iloscPionkowPodRzad++;
                         if (iloscPionkowPodRzad>1) return false;
                     }
@@ -622,30 +706,30 @@ public class Table extends java.awt.Frame {
         return false;
     }
 
-    public boolean checkHitPawn(MyField start, MyField end){
+    public boolean checkHitPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
-        int startX = start.getX();
-        int startY = start.getY();
-        int endX = end.getX();
-        int endY = end.getY();
+        int startX = start.getX(aktualnyGracz == 1);
+        int startY = start.getY(aktualnyGracz == 1);
+        int endX = end.getX(aktualnyGracz == 1);
+        int endY = end.getY(aktualnyGracz == 1);
         if (startX-2 == endX && startY+2 == endY){
-            MyField temp = new MyField();
+            Field temp = new Field();
             temp = getFieldFromAxis(startX-1, startY+1);
-            if (temp.getPawn() != nrGracza && temp.getPawn() != nrGracza+2 && temp.getPawn() != 0) return true;
+            if (temp.getPawn() != aktualnyGracz && temp.getPawn() != aktualnyGracz+2 && temp.getPawn() != 0) return true;
         }
         if (startX+2 == endX && startY+2 == endY){
-            MyField temp = new MyField();
+            Field temp = new Field();
             temp = getFieldFromAxis(startX+1, startY+1);
-            if (temp.getPawn() != nrGracza && temp.getPawn() != nrGracza+2 && temp.getPawn() != 0) return true;
+            if (temp.getPawn() != aktualnyGracz && temp.getPawn() != aktualnyGracz+2 && temp.getPawn() != 0) return true;
         }
         return false;
     }
 
-    public void destroyPawn(MyField start, MyField end){
-        int startX = start.getX();
-        int startY = start.getY();
-        int endX = end.getX();
-        int endY = end.getY();
+    public void destroyPawn(Field start, Field end){
+        int startX = start.getX(aktualnyGracz == 1);
+        int startY = start.getY(aktualnyGracz == 1);
+        int endX = end.getX(aktualnyGracz == 1);
+        int endY = end.getY(aktualnyGracz == 1);
         int diffY = endY - startY;
         diffY = diffY>=0 ? 1 : -1;
         int diffX = endX - startX;
@@ -659,20 +743,26 @@ public class Table extends java.awt.Frame {
 
     public boolean playerCanAttack(){
         for (int i=0; i<32; i++){
-            if ((tablica[i].getPawn() == nrGracza && pawnCanHit(tablica[i])) || (tablica[i].getPawn() == nrGracza +2 && queenCanHit(tablica[i]))) return true;
+            if ((tablica[i].getPawn() == aktualnyGracz && pawnCanHit(tablica[i])) || (tablica[i].getPawn() == aktualnyGracz +2 && queenCanHit(tablica[i]))) return true;
         }
         return false;
     }
 
     public void buttonClicked(int ind){
 
+        if (aktualnyGracz != kluczGracza) {
+            System.out.println("Nie moja kolei");
+            return;
+        }
+        System.out.println("Moja kolei");
+
         int index = -1;
 
-        if (nrGracza == 1){
+        if (aktualnyGracz == 1){
             index = ind;
-            System.out.println("x = " + tablica[index].getX() + " a y = " + tablica[index].getY() + " a pionek = " + tablica[index].getPawn());
-            if ((tablica[index].getPawn() == nrGracza || tablica[index].getPawn() == nrGracza+2) && !hit){
-                if (((pawnCanMove(tablica[index]) || pawnCanHit(tablica[index])) && tablica[index].getPawn()==nrGracza) || (tablica[index].getPawn() == nrGracza+2 && (queenCanHit(tablica[index]) || queenCanMove(tablica[index])))){
+            System.out.println("x = " + tablica[index].getX(aktualnyGracz == 1) + " a y = " + tablica[index].getY(aktualnyGracz == 1) + " a pionek = " + tablica[index].getPawn());
+            if ((tablica[index].getPawn() == aktualnyGracz || tablica[index].getPawn() == aktualnyGracz+2) && !hit){
+                if (((pawnCanMove(tablica[index]) || pawnCanHit(tablica[index])) && tablica[index].getPawn()==aktualnyGracz) || (tablica[index].getPawn() == aktualnyGracz+2 && (queenCanHit(tablica[index]) || queenCanMove(tablica[index])))){
                     wyswietlPlansze();
                     select = true;
                     selectField = tablica[index];
@@ -687,26 +777,26 @@ public class Table extends java.awt.Frame {
                     System.out.println("Zakończono mimo możliwości kolejnego bicia!");
                     endTurn();
                 }
-                if (checkFieldPawn(selectField, targetField) && selectField.getPawn() == nrGracza){
+                if (checkFieldPawn(selectField, targetField) && selectField.getPawn() == aktualnyGracz){
                     if (playerCanAttack()){
                         System.out.println("Możliwe bicie!");
                     }
                     else{
-                        targetField.setPawn(nrGracza);
+                        targetField.setPawn(aktualnyGracz);
                         selectField.setPawn(0);
                         select = false;
                         hit = false;
-                        if (targetField.getY()==8) targetField.setPawn(nrGracza + 2);
+                        if (targetField.getY(aktualnyGracz == 1)==8) targetField.setPawn(aktualnyGracz + 2);
                         System.out.println("Wykonano ruch!");
                         endTurn();
                     }
                 }
-                else if (checkHitPawn(selectField,targetField) && selectField.getPawn() == nrGracza){
+                else if (checkHitPawn(selectField,targetField) && selectField.getPawn() == aktualnyGracz){
                     destroyPawn(selectField,targetField);
-                    targetField.setPawn(nrGracza);
+                    targetField.setPawn(aktualnyGracz);
                     selectField.setPawn(0);
                     hit = true;
-                    if (targetField.getY()==8) targetField.setPawn(nrGracza + 2);
+                    if (targetField.getY(aktualnyGracz == 1)==8) targetField.setPawn(aktualnyGracz + 2);
                     if (!pawnCanHit(targetField)) {
                         select = false;
                         hit = false;
@@ -721,12 +811,12 @@ public class Table extends java.awt.Frame {
                     }
                 }
                 //KRÓLÓWKI!!!
-                else if (checkFieldQueen(selectField, targetField) && selectField.getPawn() == nrGracza+2){
+                else if (checkFieldQueen(selectField, targetField) && selectField.getPawn() == aktualnyGracz+2){
                     if (playerCanAttack()){
                         System.out.println("Możliwe bicie!");
                     }
                     else{
-                        targetField.setPawn(nrGracza+2);
+                        targetField.setPawn(aktualnyGracz+2);
                         selectField.setPawn(0);
                         select = false;
                         hit = false;
@@ -734,9 +824,9 @@ public class Table extends java.awt.Frame {
                         endTurn();
                     }
                 }
-                else if (checkHitQueen(selectField,targetField) && selectField.getPawn() == nrGracza+2){
+                else if (checkHitQueen(selectField,targetField) && selectField.getPawn() == aktualnyGracz+2){
                     destroyPawn(selectField,targetField);
-                    targetField.setPawn(nrGracza+2);
+                    targetField.setPawn(aktualnyGracz+2);
                     selectField.setPawn(0);
                     hit = true;
                     if (!queenCanHit(targetField)) {
@@ -758,10 +848,10 @@ public class Table extends java.awt.Frame {
         else{
             index = 31 - ind;
 
-            System.out.println("x = " + tablica[index].getX() + " a y = " + tablica[index].getY() + " a pionek = " + tablica[index].getPawn());
+            System.out.println("x = " + tablica[index].getX(aktualnyGracz == 1) + " a y = " + tablica[index].getY(aktualnyGracz == 1) + " a pionek = " + tablica[index].getPawn());
 
-            if ((tablica[index].getPawn() == nrGracza || tablica[index].getPawn() == nrGracza+2) && !hit){
-                if (((pawnCanMove(tablica[index]) || pawnCanHit(tablica[index])) && tablica[index].getPawn()==nrGracza) || (tablica[index].getPawn() == nrGracza+2 && (queenCanHit(tablica[index]) || queenCanMove(tablica[index])))){
+            if ((tablica[index].getPawn() == aktualnyGracz || tablica[index].getPawn() == aktualnyGracz+2) && !hit){
+                if (((pawnCanMove(tablica[index]) || pawnCanHit(tablica[index])) && tablica[index].getPawn()==aktualnyGracz) || (tablica[index].getPawn() == aktualnyGracz+2 && (queenCanHit(tablica[index]) || queenCanMove(tablica[index])))){
                     wyswietlPlansze();
                     select = true;
                     selectField = tablica[index];
@@ -775,23 +865,23 @@ public class Table extends java.awt.Frame {
                     hit = false;
                     endTurn();
                 }
-                if (checkFieldPawn(selectField, targetField) && selectField.getPawn() == nrGracza){
+                if (checkFieldPawn(selectField, targetField) && selectField.getPawn() == aktualnyGracz){
                     if (playerCanAttack()){
                         System.out.println("Możliwe bicie!");
                     }
                     else{
-                        targetField.setPawn(nrGracza);
+                        targetField.setPawn(aktualnyGracz);
                         selectField.setPawn(0);
-                        if (targetField.getY()==8) targetField.setPawn(nrGracza + 2);
+                        if (targetField.getY(aktualnyGracz == 1)==8) targetField.setPawn(aktualnyGracz + 2);
                         endTurn();
                     }
                 }
-                else if (checkHitPawn(selectField,targetField) && selectField.getPawn() == nrGracza){
+                else if (checkHitPawn(selectField,targetField) && selectField.getPawn() == aktualnyGracz){
                     destroyPawn(selectField,targetField);
-                    targetField.setPawn(nrGracza);
+                    targetField.setPawn(aktualnyGracz);
                     selectField.setPawn(0);
                     hit = true;
-                    if (targetField.getY()==8) targetField.setPawn(nrGracza + 2);
+                    if (targetField.getY(aktualnyGracz == 1)==8) targetField.setPawn(aktualnyGracz + 2);
                     if (!pawnCanHit(targetField)) {
                         select = false;
                         hit = false;
@@ -804,12 +894,12 @@ public class Table extends java.awt.Frame {
                     }
                 }
                 //KRÓLÓWKI!!!
-                else if (checkFieldQueen(selectField, targetField) && selectField.getPawn() == nrGracza+2){
+                else if (checkFieldQueen(selectField, targetField) && selectField.getPawn() == aktualnyGracz+2){
                     if (playerCanAttack()){
                         System.out.println("Możliwe bicie!");
                     }
                     else{
-                        targetField.setPawn(nrGracza+2);
+                        targetField.setPawn(aktualnyGracz+2);
                         selectField.setPawn(0);
                         select = false;
                         hit = false;
@@ -817,9 +907,9 @@ public class Table extends java.awt.Frame {
                         endTurn();
                     }
                 }
-                else if (checkHitQueen(selectField,targetField) && selectField.getPawn() == nrGracza+2){
+                else if (checkHitQueen(selectField,targetField) && selectField.getPawn() == aktualnyGracz+2){
                     destroyPawn(selectField,targetField);
-                    targetField.setPawn(nrGracza+2);
+                    targetField.setPawn(aktualnyGracz+2);
                     selectField.setPawn(0);
                     hit = true;
                     if (!queenCanHit(targetField)) {
@@ -838,10 +928,5 @@ public class Table extends java.awt.Frame {
             }
         }
 
-    }
-
-
-    public static void main(String[] args){
-        Table table = new Table();
     }
 }
