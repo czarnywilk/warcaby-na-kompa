@@ -3,13 +3,13 @@ package table;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
-public class Table extends java.awt.Frame {
+public class Table extends JFrame {
 
     int nrGracza = 1;
     boolean select = false;
@@ -20,46 +20,33 @@ public class Table extends java.awt.Frame {
     Field selectField = new Field();
     Field targetField = new Field();
 
-    BufferedImage pawn_white;
-    {
-        try {
-            pawn_white = ImageIO.read(new File("src\\main\\resources\\pawn_white.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage pawn_black;
-    {
-        try {
-            pawn_black = ImageIO.read(new File("src\\main\\resources\\pawn_black.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage queen_white;
-    {
-        try {
-            queen_white = ImageIO.read(new File("src\\main\\resources\\white_queen.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage queen_black;
-    {
-        try {
-            queen_black = ImageIO.read(new File("src\\main\\resources\\black_queen.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    ImageIcon pwhite = new ImageIcon(pawn_white);
-    ImageIcon qwhite = new ImageIcon(queen_white);
-    ImageIcon pblack = new ImageIcon(pawn_black);
-    ImageIcon qblack = new ImageIcon(queen_black);
+    ImageIcon pwhite;
+    ImageIcon qwhite;
+    ImageIcon pblack;
+    ImageIcon qblack;
 
     String tableColor = "#03A9F4";
 
+    private void loadImages() {
+        try {
+            BufferedImage pawn_white = ImageIO.read(getClass().getResource("/res/images/pawn_white.png"));
+            BufferedImage pawn_black = ImageIO.read(getClass().getResource("/res/images/pawn_black.png"));
+            BufferedImage queen_white = ImageIO.read(getClass().getResource("/res/images/white_queen.png"));
+            BufferedImage queen_black = ImageIO.read(getClass().getResource("/res/images/black_queen.png"));
+
+            pwhite = new ImageIcon(pawn_white);
+            qwhite = new ImageIcon(queen_white);
+            pblack = new ImageIcon(pawn_black);
+            qblack = new ImageIcon(queen_black);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Table(){
+        super();
+        loadImages();
+
         int licznik = 0;
         setSize(900,900);
         for (int i = 0; i < 8; i++){
@@ -75,36 +62,13 @@ public class Table extends java.awt.Frame {
                 if ((j % 2 == 0 && i % 2 == 0) || (i%2 == 1 && j % 2 == 1)){
                     buttons[licznik] = new JButton();
                     buttons[licznik].setFocusable(false);
-                    buttons[licznik].setBounds(100 * j + 50,100 * (7-i) + 50,100,100);
+                    buttons[licznik].setBounds(100 * j + 40,100 * (7-i) + 35,100,100);
                     buttons[licznik].setBackground(Color.decode(tableColor));
                     buttons[licznik].setName(Integer.toString(licznik));
-                    buttons[licznik].addMouseListener(new MouseListener() {
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            JButton a = (JButton) e.getSource();
-                            System.out.println(a.getName());
-                            buttonClicked(Integer.parseInt(a.getName()));
-                        }
-
-                        @Override
-                        public void mousePressed(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseReleased(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseEntered(MouseEvent e) {
-
-                        }
-
-                        @Override
-                        public void mouseExited(MouseEvent e) {
-
-                        }
+                    buttons[licznik].addActionListener(e -> {
+                        JButton a = (JButton) e.getSource();
+                        System.out.println(a.getName());
+                        buttonClicked(Integer.parseInt(a.getName()));
                     });
                     add(buttons[licznik]);
                     licznik++;
@@ -115,6 +79,16 @@ public class Table extends java.awt.Frame {
         setLayout(null);
         setVisible(true);
         wyswietlPlansze();
+
+        addWindowListener(new WindowAdapter()
+        {
+            @Override
+            public void windowClosing(WindowEvent e)
+            {
+                System.out.println("Closed");
+                System.exit(0);
+            }
+        });
     }
 
     private void wyswietlPlansze() {

@@ -1,21 +1,26 @@
 package table;
 
 import handlers.GameManager;
+import lobby.Lobby;
+import main.Main;
 import multiplayer.PlaceholderUtility;
 import multiplayer.serialized.Game;
+import roomList.RoomList;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class TableOnline extends java.awt.Frame {
+public class TableOnline extends JFrame {
 
     boolean select = false;
     boolean hit = false;
@@ -25,50 +30,36 @@ public class TableOnline extends java.awt.Frame {
     private Field selectField = new Field();
     private Field targetField = new Field();
 
-    BufferedImage pawn_white;
-    {
-        try {
-            pawn_white = ImageIO.read(new File("src\\main\\resources\\pawn_white.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage pawn_black;
-    {
-        try {
-            pawn_black = ImageIO.read(new File("src\\main\\resources\\pawn_black.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage queen_white;
-    {
-        try {
-            queen_white = ImageIO.read(new File("src\\main\\resources\\white_queen.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    BufferedImage queen_black;
-    {
-        try {
-            queen_black = ImageIO.read(new File("src\\main\\resources\\black_queen.png"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    ImageIcon pwhite = new ImageIcon(pawn_white);
-    ImageIcon qwhite = new ImageIcon(queen_white);
-    ImageIcon pblack = new ImageIcon(pawn_black);
-    ImageIcon qblack = new ImageIcon(queen_black);
+    private ImageIcon pwhite;
+    private ImageIcon qwhite;
+    private ImageIcon pblack;
+    private ImageIcon qblack;
 
     String tableColor = "#03A9F4";
     public static String cleanBoard = "11111111000000000000000022222222";
     private int aktualnyGracz;
     private int kluczGracza;
-    private Timer timer = new Timer();
+    private static Timer timer = new Timer();
 
-    public TableOnline(){
+    private void loadImages() {
+        try {
+            BufferedImage pawn_white = ImageIO.read(getClass().getResource("/res/images/pawn_white.png"));
+            BufferedImage pawn_black = ImageIO.read(getClass().getResource("/res/images/pawn_black.png"));
+            BufferedImage queen_white = ImageIO.read(getClass().getResource("/res/images/white_queen.png"));
+            BufferedImage queen_black = ImageIO.read(getClass().getResource("/res/images/black_queen.png"));
+
+            pwhite = new ImageIcon(pawn_white);
+            qwhite = new ImageIcon(queen_white);
+            pblack = new ImageIcon(pawn_black);
+            qblack = new ImageIcon(queen_black);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public TableOnline() {
+        loadImages();
+
         try {
             int licznik = 0;
             setSize(900, 900);
@@ -85,36 +76,13 @@ public class TableOnline extends java.awt.Frame {
                     if ((j % 2 == 0 && i % 2 == 0) || (i % 2 == 1 && j % 2 == 1)) {
                         buttons[licznik] = new JButton();
                         buttons[licznik].setFocusable(false);
-                        buttons[licznik].setBounds(100 * j + 50, 100 * (7 - i) + 50, 100, 100);
+                        buttons[licznik].setBounds(100 * j + 40, 100 * (7 - i) + 35, 100, 100);
                         buttons[licznik].setBackground(Color.decode(tableColor));
                         buttons[licznik].setName(Integer.toString(licznik));
-                        buttons[licznik].addMouseListener(new MouseListener() {
-                            @Override
-                            public void mouseClicked(MouseEvent e) {
-                                JButton a = (JButton) e.getSource();
-                                System.out.println(a.getName());
-                                buttonClicked(Integer.parseInt(a.getName()));
-                            }
-
-                            @Override
-                            public void mousePressed(MouseEvent e) {
-
-                            }
-
-                            @Override
-                            public void mouseReleased(MouseEvent e) {
-
-                            }
-
-                            @Override
-                            public void mouseEntered(MouseEvent e) {
-
-                            }
-
-                            @Override
-                            public void mouseExited(MouseEvent e) {
-
-                            }
+                        buttons[licznik].addActionListener(e -> {
+                            JButton a = (JButton) e.getSource();
+                            System.out.println(a.getName());
+                            buttonClicked(Integer.parseInt(a.getName()));
                         });
                         add(buttons[licznik]);
                         licznik++;
@@ -131,14 +99,33 @@ public class TableOnline extends java.awt.Frame {
             aktualnyGracz =  currentId.equals(whiteId) ? 1 : 2;
             kluczGracza = playerId.equals(whiteId) ? 1 : 2;
 
-            System.out.println(playerId + " --- " + currentId);
-
             // refresh every 3 seconds
             if (aktualnyGracz != kluczGracza) {
                 waitForTurn();
             }
 
             wyswietlPlansze();
+
+            addWindowListener(new WindowAdapter()
+            {
+                @Override
+                public void windowClosing(WindowEvent e)
+                {
+                    try {
+                        System.out.println("Closed");
+                        e.getWindow().dispose();
+                        timer.cancel();
+                        timer = new Timer();
+
+                        GameManager.quitGame(false);
+
+                        Main.createMainFrame(new RoomList());
+                    }
+                    catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+            });
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -196,6 +183,7 @@ public class TableOnline extends java.awt.Frame {
         }
     }
 
+    // =========================================================================================
     public void endTurn(){
         wyswietlPlansze();
         sendData();
@@ -214,41 +202,70 @@ public class TableOnline extends java.awt.Frame {
         System.out.println("start turn: " + aktualnyGracz);
     }
 
-    // =========================================================================================
     public void getData(){
-        GameManager.getGame(GameManager.getUserGame());
-        GameManager.setServerCallbackListener(new GameManager.ServerCallbackListener() {
-            @Override
-            public void onServerResponse(Object obj) {
-                Game game = (Game)obj;
+        try {
+            GameManager.getGame(GameManager.getUserGame());
+            GameManager.setServerCallbackListener(new GameManager.ServerCallbackListener() {
+                @Override
+                public void onServerResponse(Object obj) {
+                    Game game = (Game) obj;
 
-                if (game.getCurrentPlayerId().equals(GameManager.getUserPlayer().getId())) {
+                    if (game != null) {
 
+                        Game oldGame = GameManager.getUserGame();
+                        GameManager.setUserGame(game);
 
-                    aktualnyGracz = GameManager.getUserGame()
-                            .switchPlayers().equals(game.getWhitePlayerId()) ? 1 : 2;
+                        if (game.getPlayersCount() < 2) {
+                            dispose();
+                            timer.cancel();
+                            timer = new Timer();
+                            GameManager.setSecondPlayer(null);
+                            Main.createMainFrame(new Lobby(GameManager.getUserGame().getGameName()));
+                            return;
+                        }
 
-                    GameManager.setUserGame(game);
-                    stringToBoard(game.getBoard());
+                        if (game.getCurrentPlayerId().equals(GameManager.getUserPlayer().getId())) {
 
-                    timer.cancel();
+                            aktualnyGracz = oldGame.switchPlayers().equals(game.getWhitePlayerId()) ? 1 : 2;
 
-                    startTurn();
+                            stringToBoard(game.getBoard());
+
+                            timer.cancel();
+                            timer = new Timer();
+
+                            startTurn();
+                        }
+                    }
                 }
-            }
 
-            @Override
-            public void onServerFailed() {
-                //TODO jesli nie udalo nie zaktualizowac gry
-            }
-        });
+                @Override
+                public void onServerFailed() {
+                    System.out.println("Failed to get data from server!");
+                }
+            });
+        }
+        catch (ClassCastException cce) {
+            System.err.println("Error while casting: " + cce.getMessage());
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void sendData(){
-        Game game = GameManager.getUserGame();
+
+        // check if someone left before user moved
+        Game game = GameManager.getGame_sync(GameManager.getUserGame().getId());
+        GameManager.setUserGame(game);
+        if (game.getPlayersCount() < 2) {
+            dispose();
+            timer.cancel();
+            timer = new Timer();
+            Main.createMainFrame(new Lobby(game.getGameName()));
+            return;
+        }
 
         aktualnyGracz = game.switchPlayers().equals(game.getWhitePlayerId()) ? 1 : 2;
-
         game.setBoard(boardToString());
 
         GameManager.updateGame(game);
@@ -289,6 +306,10 @@ public class TableOnline extends java.awt.Frame {
         return result;
     }
     // =========================================================================================
+
+    public static Timer getTimer() {
+        return timer;
+    }
 
     public boolean canPlayerPlay(){
         for (int i=0; i<32; i++){

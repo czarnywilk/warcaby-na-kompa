@@ -20,7 +20,7 @@ public interface JsonPlaceholderAPI {
     @POST("games")
     Call<Game> createGame(@Body Game game);
     @POST("players")
-    Call<Game> createPlayer(@Body Player player);
+    Call<Player> createPlayer(@Body Player player);
 
 
     @DELETE("games/{id}")

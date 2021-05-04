@@ -1,5 +1,4 @@
 package handlers;
-//import lobby.Lobby;
 import multiplayer.PlaceholderUtility;
 import multiplayer.serialized.Game;
 import multiplayer.serialized.Player;
@@ -28,22 +27,6 @@ public class GameManager {
     private static Player secondPlayer;
     private static Game userGame;
 
-    /*private static Context mContext; // memory leak :(
-    public static void setContext(Context context) {
-        mContext = context;
-        listener = new ServerCallbackListener() {
-            @Override
-            public void onServerResponse(Object obj) {
-
-            }
-
-            @Override
-            public void onServerFailed() {
-
-            }
-        };
-    }*/
-
     // ------------------- GETTERS -----------------------
     public static void getGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().getGame(game.getId());
@@ -66,35 +49,39 @@ public class GameManager {
             }
         });
     }
-    public static void getGame (Integer gameId) {
+    public static Game getGame_sync (Integer gameId) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().getGame(gameId);
 
-        call.enqueue(new Callback<Game>() {
-            @Override
-            public void onResponse(Call<Game> call, Response<Game> response) {
-                if (!response.isSuccessful()) {
-                    //Toast.makeText(mContext,"Connection unsuccessful!", Toast.LENGTH_SHORT).show();
-                    return;
+        final Game[] _game = new Game[1];
+
+        try {
+            Runnable runnable = () -> {
+                try {
+                    Response<Game> response = call.execute();
+
+                    _game[0] = response.body();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
                 }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
 
-                listener.onServerResponse(response.body());
-            }
-
-            @Override
-            public void onFailure(Call<Game> call, Throwable t) {
-                //Toast.makeText(mContext,"Connection failed!", Toast.LENGTH_SHORT).show();
-                listener.onServerFailed();
-            }
-        });
+        return _game[0];
     }
     public static void getGames () {
         Call<List<Game>> call = PlaceholderUtility.getPlaceholderInstance().getListOfRooms();
 
-        call.enqueue(new Callback<List<Game>>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<Game>> call, Response<List<Game>> response) {
                 if (!response.isSuccessful()) {
-                    //Toast.makeText(mContext,"Connection unsuccessful!", Toast.LENGTH_SHORT).show();
+                    listener.onServerFailed();
                     return;
                 }
                 listener.onServerResponse(response.body());
@@ -102,17 +89,17 @@ public class GameManager {
 
             @Override
             public void onFailure(Call<List<Game>> call, Throwable t) {
-                //Toast.makeText(mContext,"Connection failed!", Toast.LENGTH_SHORT).show();
+                listener.onServerFailed();
             }
         });
     }
     public static void getPlayersFromGame (Game game) {
         Call<List<Player>> call = PlaceholderUtility.getPlaceholderInstance().getPlayersFromGame(game.getId());
-        call.enqueue(new Callback<List<Player>>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<List<Player>> call, Response<List<Player>> response) {
                 if (!response.isSuccessful()) {
-                    //Toast.makeText(mContext,"Connection unsuccessful!", Toast.LENGTH_SHORT).show();
+                    listener.onServerFailed();
                     return;
                 }
                 listener.onServerResponse(response.body());
@@ -120,7 +107,7 @@ public class GameManager {
 
             @Override
             public void onFailure(Call<List<Player>> call, Throwable t) {
-                //Toast.makeText(mContext,"Connection failed!", Toast.LENGTH_SHORT).show();
+                listener.onServerFailed();
             }
         });
     }
@@ -134,9 +121,6 @@ public class GameManager {
     public static Game getUserGame() {
         return userGame;
     }
-    /*public static Context getContext() {
-        return mContext;
-    }*/
 
     // ------------------- SETTERS -----------------------
     public static void setUserPlayer(Player userPlayer) {
@@ -154,33 +138,57 @@ public class GameManager {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
 
-        call.enqueue(new Callback<Game>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<Game> call, Response<Game> response) {
                 if (!response.isSuccessful()) {
                     return;
                 }
 
-                //listener.onServerResponse(null);
+                listener.onServerResponse(null);
             }
 
             @Override
             public void onFailure(Call<Game> call, Throwable t) {
-                //listener.onServerFailed();
+                listener.onServerFailed();
             }
         });
+    }
+    public static Game updateGame_sync (Game game) {
+        Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
+                editGame(game.getId(), game);
+
+        final Game[] games = {null};
+
+        try {
+            Runnable runnable = () -> {
+                try {
+                    Response<Game> response = call.execute();
+                    games[0] = response.body();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+
+        return games[0];
     }
     public static void joinGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
 
-        call.enqueue(new Callback<Game>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<Game> call, Response<Game> response) {
                 if (!response.isSuccessful()) {
                     return;
                 }
-                //Toast.makeText(mContext,"Joined Game!", Toast.LENGTH_SHORT).show();
 
                 Game gameResponse = response.body();
                 assert gameResponse != null;
@@ -188,25 +196,45 @@ public class GameManager {
                 GameManager.setUserGame(gameResponse);
                 GameManager.userPlayer.setGameId(gameResponse.getId());
                 GameManager.updatePlayer(userPlayer, false);
-
-                //TODO !!!!!!!!!!!!!!!!
-                //RoomList.removeRefreshCallbacks();
-                //mContext.startActivity(new Intent(mContext, Lobby.class));
-
-                //listener.onServerResponse(null);
             }
 
             @Override
             public void onFailure(Call<Game> call, Throwable t) {
-                //listener.onServerFailed();
             }
         });
+    }
+    public static void joinGame_sync(Game game) {
+        Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
+                editGame(game.getId(), game);
+
+        try {
+            Runnable runnable = () -> {
+                try {
+                    Response<Game> response = call.execute();
+
+                    Game gameResponse = response.body();
+                    assert gameResponse != null;
+
+                    setUserGame(gameResponse);
+                    userPlayer.setGameId(gameResponse.getId());
+                    updatePlayer_sync(userPlayer);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
     }
     public static void updatePlayer (Player updatedPlayer, boolean setResponse) {
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
                 editPlayer(updatedPlayer.getId(), updatedPlayer);
 
-        call.enqueue(new Callback<Player>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<Player> call, Response<Player> response) {
                 if (!response.isSuccessful()) {
@@ -222,18 +250,38 @@ public class GameManager {
             }
         });
     }
+    public static void updatePlayer_sync (Player updatedPlayer) {
+        Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
+                editPlayer(updatedPlayer.getId(), updatedPlayer);
+
+        try {
+            Runnable runnable = () -> {
+                try {
+                    call.execute();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+    }
 
     // ------------------- CREATE ------------------------
     public static void createGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().createGame(game);
 
-        call.enqueue(new Callback<Game>() {
+        call.enqueue(new Callback<>() {
             @Override
             public void onResponse(Call<Game> call, Response<Game> response) {
                 if (!response.isSuccessful()) {
+                    listener.onServerFailed();
                     return;
                 }
-                //Toast.makeText(mContext,"Game created!", Toast.LENGTH_SHORT).show();
 
                 Game gameResponse = response.body();
                 assert gameResponse != null;
@@ -255,29 +303,90 @@ public class GameManager {
             }
         });
     }
-    public static void createPlayer(Player player) {
-        Call<Game> call = PlaceholderUtility.getPlaceholderInstance().createPlayer(player);
-        call.enqueue(new Callback<Game>() {
-            @Override
-            public void onResponse(Call<Game> call, Response<Game> response) {
+    public static void createGame_sync (Game game) {
+        Call<Game> call = PlaceholderUtility.getPlaceholderInstance().createGame(game);
 
+        try {
+            Runnable runnable = () -> {
+                try {
+                    Response<Game> response = call.execute();
+
+                    Game gameResponse = response.body();
+                    assert gameResponse != null;
+
+                    game.setId(gameResponse.getId());
+                    game.setWhitePlayerId(gameResponse.getWhitePlayerId());
+                    game.setBlackPlayerId(gameResponse.getBlackPlayerId());
+
+                    GameManager.setUserGame(gameResponse);
+                    GameManager.userPlayer.setGameId(gameResponse.getId());
+                    GameManager.updatePlayer(userPlayer, false);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+    }
+    public static void createPlayer(Player player) {
+        Call<Player> call = PlaceholderUtility.getPlaceholderInstance().createPlayer(player);
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(Call<Player> call, Response<Player> response) {
                 if (!response.isSuccessful()) {
+                    listener.onServerFailed();
                     return;
                 }
-                //Toast.makeText(mContext,"Player created!", Toast.LENGTH_SHORT).show();
-                player.setId(response.body().getId());
+                Player playerResponse = response.body();
+                assert playerResponse != null;
+
+                player.setId(playerResponse.getId());
                 listener.onServerResponse(null);
             }
 
             @Override
-            public void onFailure(Call<Game> call, Throwable t) {
+            public void onFailure(Call<Player> call, Throwable t) {
                 listener.onServerFailed();
             }
         });
     }
+    public static boolean createPlayer_sync(Player player) {
+        Call<Player> call = PlaceholderUtility.getPlaceholderInstance().createPlayer(player);
+        final boolean[] success = {false};
+        try {
+            Runnable runnable = () -> {
+                try {
+                    Response<Player> response = call.execute();
+
+                    Player playerResponse = response.body();
+                    if (playerResponse != null) {
+                        player.setId(playerResponse.getId());
+                        success[0] = true;
+                    }
+                    else
+                        System.out.println("Failed to create player!!");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            };
+            Thread thread = new Thread(runnable);
+            thread.start(); // spawn thread
+            thread.join(); // wait for thread to finish
+        }
+        catch (InterruptedException ie) {
+            ie.printStackTrace();
+        }
+
+        return success[0];
+    }
 
     //-------------------- DELETE ------------------------
-    public static void deletePlayer (Integer deletePlayerId) {
+    public static void deletePlayer_sync (Integer deletePlayerId) {
 
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
                 deletePlayer(deletePlayerId);
@@ -299,7 +408,7 @@ public class GameManager {
             ie.printStackTrace();
         }
     }
-    public static void deleteGame (Integer gameId) {
+    public static void deleteGame_sync (Integer gameId) {
 
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().deleteGame(gameId);
 
@@ -322,52 +431,46 @@ public class GameManager {
 
     // -------------------- QUIT -------------------------
     public static void quitGame(boolean deletePlayerOnQuit) {
-        Game game = getUserGame();
-        Integer playerId = getUserPlayer().getId();
+        try {
+            Game game = getGame_sync(getUserGame().getId());
+            Integer playerId = getUserPlayer().getId();
 
-        if (game != null) {
-            if (getSecondPlayer() == null) {
-                if (deletePlayerOnQuit) {
-                    System.out.println("1");
-                    deleteGame(game.getId());
-                    System.out.println("2");
-                    deletePlayer(playerId);
-                    System.out.println("3");
-                }
-                else {
-                    System.out.println("4");
-                    deleteGame(game.getId());
-                    System.out.println("5");
-                }
-            }
-            else {
-                if (deletePlayerOnQuit)
-                    deletePlayer(playerId);
-                else {
-                    getUserPlayer().setGameId(null);
-                    updatePlayer(getUserPlayer(), false);
-                }
+            if (game != null) {
+                if (getSecondPlayer() == null) {
+                    if (deletePlayerOnQuit)
+                        deletePlayer_sync(playerId);
+                    deleteGame_sync(game.getId());
+                } else {
+                    if (deletePlayerOnQuit)
+                        deletePlayer_sync(playerId);
+                    else {
+                        getUserPlayer().setGameId(null);
+                        updatePlayer_sync(getUserPlayer());
+                    }
 
-                // edit game: set null(s) in game
-                if (game.getWhitePlayerId().equals(playerId)) {
-                    game.setWhitePlayerId(null);
-                }
-                else if (game.getBlackPlayerId().equals(playerId)) {
-                    game.setBlackPlayerId(null);
-                }
+                    // edit game: set null(s) in game
+                    if (game.getWhitePlayerId() != null &&
+                            game.getWhitePlayerId().equals(playerId)) {
+                        game.setWhitePlayerId(null);
+                    } else if (game.getBlackPlayerId() != null &&
+                               game.getBlackPlayerId().equals(playerId)) {
+                        game.setBlackPlayerId(null);
+                    }
 
-                if (game.getCurrentPlayerId().equals(playerId)) {
-                    game.setCurrentPlayerId(null);
-                }
+                    if (game.getCurrentPlayerId() != null &&
+                            game.getCurrentPlayerId().equals(playerId)) {
+                        game.setCurrentPlayerId(null);
+                    }
 
-                game.setGameStarted(false);
-                updateGame(game);
+                    game.setGameStarted(false);
+                    updateGame_sync(game);
+                }
+            } else if (deletePlayerOnQuit) {
+                deletePlayer_sync(playerId);
             }
         }
-        else if (deletePlayerOnQuit) {
-            System.out.println("6");
-            deletePlayer(playerId);
-            System.out.println("7");
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
