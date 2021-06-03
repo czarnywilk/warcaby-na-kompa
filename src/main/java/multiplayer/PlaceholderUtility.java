@@ -4,15 +4,37 @@ import com.google.gson.GsonBuilder;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+
+/**
+ * Klasa nawiązująca połączenie z serwerem.
+ */
 public class PlaceholderUtility {
 
-    private static final String BaseUrl = "https://ordinary-fireant-38.loca.lt/";
+    /**
+     * Bazowy adres URL serwera.
+     */
+    private static final String BaseUrl = "https://ugly-elephant-32.loca.lt/";
 
+    /**
+     * Prawdziwe, jeśli połączenie zostało nawiązane.
+     */
     private static boolean initialized = false;
+    /**
+     * Obiekt klasy Retrofit.
+     */
     private static Retrofit retrofitInstance;
 
+    /**
+     * Obiekt klasy przechowującej metody HTTP.
+     */
     private static JsonPlaceholderAPI placeholderInstance;
 
+    /**
+     * Metoda inicjująca połączenie z serwerem.
+     */
     public static void initialize() {
         if (initialized) return;
 
@@ -22,6 +44,10 @@ public class PlaceholderUtility {
     }
 
     // --------------- Retrofit --------------------
+    /**
+     * Metoda tworząca klienta połączenia z serwerem.
+     * @return Zwraca klienta połączenia.
+     */
     private static Retrofit createRetrofitInstance() {
         if (!initialized) {
             return new Retrofit.Builder()
@@ -32,17 +58,37 @@ public class PlaceholderUtility {
         }
         else return retrofitInstance;
     }
+
+    /**
+     * Getter klienta połączenia.
+     * @return Klient połączenia.
+     */
     public static Retrofit getRetrofitInstance() {
         return retrofitInstance;
     }
 
     // -------------- Placeholder -------------------
+    /**
+     * Getter interfejsu z metodami HTTP.
+     * @return Interfejs z metodami HTTP.
+     */
     public static JsonPlaceholderAPI getPlaceholderInstance() {
         return placeholderInstance;
     }
 
+    /**
+     * Metoda sprwdzająca połączenie z internetem.
+     * @return Zraca prawdę, gry udało sie nazwiązać połączenie internetowe.
+     */
     public static boolean hasInternetAccess() {
-        // TODO how to check on PC?
-        return true;
+        try {
+            URL url = new URL("http://www.google.com");
+            URLConnection connection = url.openConnection();
+            connection.connect();
+            return true;
+        } catch (IOException e) {
+            System.out.println("Internet is not connected");
+            return false;
+        }
     }
 }

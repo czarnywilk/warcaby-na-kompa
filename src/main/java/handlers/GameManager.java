@@ -10,24 +10,50 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Klasa obsługująca komunikacje oraz synchronizacje danych z serwerem.
+ */
 public class GameManager {
 
     // -------------------- SERVER LISTENER ----------------
+    /**
+     * Interfejs nasłuchujący odpowiedzi od serwera.
+     */
     public interface ServerCallbackListener {
         void onServerResponse(Object obj);
         void onServerFailed();
     }
+    /**
+     * Obiekt nasłuchiwacza serwera.
+     */
     public static ServerCallbackListener listener;
+    /**
+     * Setter nasłuchiwacza serwera.
+     * @param listener Obiekt nasłuchiwacza serwera.
+     */
     public static void setServerCallbackListener(ServerCallbackListener listener){
         GameManager.listener = listener;
     }
     // -----------------------------------------------------
 
+    /**
+     * Obiekt gracza sterowany przez lokalnego użytkownika.
+     */
     private static Player userPlayer;
+    /**
+     * Obiekt gracza sterowany przez przeciwnika.
+     */
     private static Player secondPlayer;
+    /**
+     * Obiekt gry, w której uczestniczy gracz
+     */
     private static Game userGame;
 
     // ------------------- GETTERS -----------------------
+    /**
+     * Metoda pobierająca obiekt gry z serwera w sposób asynchroniczny.
+     * @param game Gra, która ma zostać pobrana.
+     */
     public static void getGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().getGame(game.getId());
 
@@ -35,7 +61,7 @@ public class GameManager {
             @Override
             public void onResponse(Call<Game> call, Response<Game> response) {
                 if (!response.isSuccessful()) {
-                    //Toast.makeText(mContext,"Connection unsuccessful!", Toast.LENGTH_SHORT).show();
+                    listener.onServerFailed();
                     return;
                 }
 
@@ -44,11 +70,14 @@ public class GameManager {
 
             @Override
             public void onFailure(Call<Game> call, Throwable t) {
-                //Toast.makeText(mContext,"Connection failed!", Toast.LENGTH_SHORT).show();
                 listener.onServerFailed();
             }
         });
     }
+    /**
+     * Metoda pobierająca obiekt gry z serwera.
+     * @param gameId ID gry, która ma zostać pobrana.
+     */
     public static Game getGame_sync (Integer gameId) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().getGame(gameId);
 
@@ -74,6 +103,9 @@ public class GameManager {
 
         return _game[0];
     }
+    /**
+     * Metoda pobierająca wszytskie gry z serwera w sposób asynchroniczny.
+     */
     public static void getGames () {
         Call<List<Game>> call = PlaceholderUtility.getPlaceholderInstance().getListOfRooms();
 
@@ -93,6 +125,10 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda pobierająca z serwera w sposób asynchroniczny wszystkich graczy należących do danej gry.
+     * @param game Gra, której gracze mają zostać pobrani.
+     */
     public static void getPlayersFromGame (Game game) {
         Call<List<Player>> call = PlaceholderUtility.getPlaceholderInstance().getPlayersFromGame(game.getId());
         call.enqueue(new Callback<>() {
@@ -112,28 +148,56 @@ public class GameManager {
         });
     }
 
+    /**
+     * Getter lokalnego gracza.
+     * @return Obiekt gracza.
+     */
     public static Player getUserPlayer() {
         return userPlayer;
     }
+    /**
+     * Getter przeciwnika.
+     * @return Obiekt gracza.
+     */
     public static Player getSecondPlayer() {
         return secondPlayer;
     }
+    /**
+     * Getter obecnej gry.
+     * @return Obiekt gry.
+     */
     public static Game getUserGame() {
         return userGame;
     }
 
     // ------------------- SETTERS -----------------------
+    /**
+     * Setter lokanego gracza.
+     * @param userPlayer Obiekt gracza.
+     */
     public static void setUserPlayer(Player userPlayer) {
         GameManager.userPlayer = userPlayer;
     }
+    /**
+     * Setter obecnej gry.
+     * @param userGame Obiekt gry.
+     */
     public static void setUserGame(Game userGame) {
         GameManager.userGame = userGame;
     }
+    /**
+     * Setter przeciwnika.
+     * @param secondPlayer Obiekt gracza.
+     */
     public static void setSecondPlayer(Player secondPlayer) {
         GameManager.secondPlayer = secondPlayer;
     }
 
     // -------------------- EDIT -------------------------
+    /**
+     * Metoda aktualizująca obiekt gry na serwerze w sposób asynchroniczny.
+     * @param game Obiekt gry do zastąpienia.
+     */
     public static void updateGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
@@ -154,6 +218,11 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda aktualizująca obiekt gry na serwerze.
+     * @param game Obiekt gry do zastąpienia.
+     * @return Obiekt zaktualizowanej gry.
+     */
     public static Game updateGame_sync (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
@@ -179,6 +248,10 @@ public class GameManager {
 
         return games[0];
     }
+    /**
+     * Metoda dołączająca lokalnego użytkownika do gry w sposób asynchroniczny.
+     * @param game Gra, do której chcemy dołączyć.
+     */
     public static void joinGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
@@ -203,6 +276,10 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda dołączająca lokalnego użytkownika do gry.
+     * @param game Gra, do której chcemy dołączyć.
+     */
     public static void joinGame_sync(Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().
                 editGame(game.getId(), game);
@@ -230,6 +307,12 @@ public class GameManager {
             ie.printStackTrace();
         }
     }
+    /**
+     * Metoda aktualizująca gracza w sposób asynchroniczny.
+     * @param updatedPlayer Obiekt gracza do zastąpienia.
+     * @param setResponse Jeśli prawdziwe, nasłuchiwacz wywoła metodę
+     *                    informującą o sukcesie odebrania odpowiedzi od serwera
+     */
     public static void updatePlayer (Player updatedPlayer, boolean setResponse) {
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
                 editPlayer(updatedPlayer.getId(), updatedPlayer);
@@ -250,6 +333,10 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda aktualizująca gracza.
+     * @param updatedPlayer Obiekt gracza do zastąpienia.
+     */
     public static void updatePlayer_sync (Player updatedPlayer) {
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
                 editPlayer(updatedPlayer.getId(), updatedPlayer);
@@ -272,6 +359,10 @@ public class GameManager {
     }
 
     // ------------------- CREATE ------------------------
+    /**
+     * Metoda tworząca nowy obiekt gry na serwerze w sposób asynchroniczny.
+     * @param game Gra, która ma zostać utworzona.
+     */
     public static void createGame (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().createGame(game);
 
@@ -303,6 +394,10 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda tworząca nowy obiekt gry na serwerze.
+     * @param game Gra, która ma zostać utworzona.
+     */
     public static void createGame_sync (Game game) {
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().createGame(game);
 
@@ -333,6 +428,10 @@ public class GameManager {
             ie.printStackTrace();
         }
     }
+    /**
+     * Metoda tworząca nowy obiekt gracza na serwerze w sposób asynchroniczny.
+     * @param player Gracz, który ma zostać utworzony.
+     */
     public static void createPlayer(Player player) {
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().createPlayer(player);
         call.enqueue(new Callback<>() {
@@ -355,6 +454,10 @@ public class GameManager {
             }
         });
     }
+    /**
+     * Metoda tworząca nowy obiekt gracza na serwerze.
+     * @param player Gracz, który ma zostać utworzony.
+     */
     public static boolean createPlayer_sync(Player player) {
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().createPlayer(player);
         final boolean[] success = {false};
@@ -386,6 +489,10 @@ public class GameManager {
     }
 
     //-------------------- DELETE ------------------------
+    /**
+     * Metoda usuwająca obiekt gracza z serwera.
+     * @param deletePlayerId ID gracza, który ma zostać usunięty.
+     */
     public static void deletePlayer_sync (Integer deletePlayerId) {
 
         Call<Player> call = PlaceholderUtility.getPlaceholderInstance().
@@ -408,6 +515,10 @@ public class GameManager {
             ie.printStackTrace();
         }
     }
+    /**
+     * Metoda usuwająca obiekt gry z serwera.
+     * @param gameId ID gry, która ma zostać usunięta.
+     */
     public static void deleteGame_sync (Integer gameId) {
 
         Call<Game> call = PlaceholderUtility.getPlaceholderInstance().deleteGame(gameId);
@@ -430,6 +541,11 @@ public class GameManager {
     }
 
     // -------------------- QUIT -------------------------
+    /**
+     * Metoda obsługująca wyjście lokalnego gracza z obecnej gry.
+     * @param deletePlayerOnQuit Jeśli prawdziwe, lokalny gracz zostanie
+     *                           usunięty z serwera (np. gry gracz wyłączy aplikację)
+     */
     public static void quitGame(boolean deletePlayerOnQuit) {
         try {
             Game game = getGame_sync(getUserGame().getId());

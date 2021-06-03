@@ -196,7 +196,6 @@ public class TableOnline extends JFrame {
     public void startTurn(){
         if (!canPlayerPlay()){
             System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " przegrał!");
-            //TODO w tym miejscu gracz przegrywa
         }
         wyswietlPlansze();
         System.out.println("start turn: " + aktualnyGracz);
@@ -277,7 +276,7 @@ public class TableOnline extends JFrame {
 
             @Override
             public void onServerFailed() {
-                //TODO jesli nie udalo nie wysłać gry
+                System.out.println("Failed to send data to server!");
             }
         });
     }
