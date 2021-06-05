@@ -16,7 +16,7 @@ public class PlaceholderUtility {
     /**
      * Bazowy adres URL serwera.
      */
-    private static final String BaseUrl = "https://ugly-elephant-32.loca.lt/";
+    private static final String BaseUrl = "https://wonderful-vampirebat-24.loca.lt/";
 
     /**
      * Prawdziwe, jeśli połączenie zostało nawiązane.

@@ -80,7 +80,7 @@ public class TableOnline extends JFrame {
      */
     private int kluczGracza;
     /**
-     * Zmienna przechowywująca czas jaki minał między odświeżeniem listy pokoi.
+     * Obiekt klasy wywołującej zadany blok instrukcji po odliczeniu podanej ilości sekund.
      */
     private static Timer timer = new Timer();
     /**
@@ -98,7 +98,7 @@ public class TableOnline extends JFrame {
             pblack = new ImageIcon(pawn_black);
             qblack = new ImageIcon(queen_black);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
     /**
@@ -159,23 +159,16 @@ public class TableOnline extends JFrame {
                 public void windowClosing(WindowEvent e)
                 {
                     try {
-                        System.out.println("Closed");
-                        e.getWindow().dispose();
-                        timer.cancel();
-                        timer = new Timer();
-
-                        GameManager.quitGame(false);
-
-                        Main.createMainFrame(new RoomList());
+                        close(true);
                     }
                     catch (Exception ex) {
-                        ex.printStackTrace();
+                        System.out.println(ex.getMessage());
                     }
                 }
             });
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
     /**
@@ -231,6 +224,23 @@ public class TableOnline extends JFrame {
             }
         }
     }
+    /**
+     * Metoda zamykająca okno gry. Przechodzi następnie do listy pokoi.
+     * @param leaveRoom Jeśli prawdziwe, gracz opuści obecną grę.
+     */
+    private void close(boolean leaveRoom) {
+        System.out.println("Closed");
+        dispose();
+        timer.cancel();
+        timer = new Timer();
+
+        if (leaveRoom) {
+            GameManager.quitGame(false);
+            Main.createMainFrame(new RoomList());
+        }
+        else
+            Main.createMainFrame(new Lobby(GameManager.getUserGame().getGameName()));
+    }
 
     // =========================================================================================
 
@@ -242,21 +252,32 @@ public class TableOnline extends JFrame {
         sendData();
         if (!canPlayerPlay()){
             System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " wygrał!");
-            //TODO w tym miejscu gracz wygrywa - możecie dodać, co tam Wam pasuje
+            JFrame f = new JFrame();
+            JOptionPane.showMessageDialog(
+                    f,
+                    "Wygrałeś!",
+                    "Koniec gry!", JOptionPane.INFORMATION_MESSAGE
+            );
+            close(true);
         }
     }
-
     /**
      * Metoda rozpoczynająa turę zawodnika.
      */
     public void startTurn(){
-        if (!canPlayerPlay()){
-            System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " przegrał!");
-        }
         wyswietlPlansze();
+        if (!canPlayerPlay()){
+            System.out.println("Gracz " + GameManager.getSecondPlayer().getPlayerName() + " wygrał!");
+            JFrame f = new JFrame();
+            JOptionPane.showMessageDialog(
+                    f,
+                    "Gracz " + GameManager.getSecondPlayer().getPlayerName() + " wygrał!",
+                    "Koniec gry!", JOptionPane.INFORMATION_MESSAGE
+            );
+            close(true);
+        }
         System.out.println("start turn: " + aktualnyGracz);
     }
-
     /**
      * Metoda pobierające dane z serwera o grze
      */
@@ -274,11 +295,8 @@ public class TableOnline extends JFrame {
                         GameManager.setUserGame(game);
 
                         if (game.getPlayersCount() < 2) {
-                            dispose();
-                            timer.cancel();
-                            timer = new Timer();
                             GameManager.setSecondPlayer(null);
-                            Main.createMainFrame(new Lobby(GameManager.getUserGame().getGameName()));
+                            close(false);
                             return;
                         }
 
@@ -306,7 +324,7 @@ public class TableOnline extends JFrame {
             System.err.println("Error while casting: " + cce.getMessage());
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
     /**
@@ -318,10 +336,7 @@ public class TableOnline extends JFrame {
         Game game = GameManager.getGame_sync(GameManager.getUserGame().getId());
         GameManager.setUserGame(game);
         if (game.getPlayersCount() < 2) {
-            dispose();
-            timer.cancel();
-            timer = new Timer();
-            Main.createMainFrame(new Lobby(game.getGameName()));
+            close(false);
             return;
         }
 
@@ -341,7 +356,6 @@ public class TableOnline extends JFrame {
             }
         });
     }
-
     /**
      * Metoda oczekiwania na kolej gracza.
      */
@@ -355,7 +369,6 @@ public class TableOnline extends JFrame {
             }
         }, 0, 3000);
     }
-
     /**
      * Metoda odtwarzająca stan planszy na podstawie ciągu znaków.
      * @param input ciąg znaków z zakodowaną infomarcja o planszy.
@@ -365,7 +378,6 @@ public class TableOnline extends JFrame {
             tablica[i].setPawn(Character.getNumericValue(input.charAt(i)));
         }
     }
-
     /**
      * Metoda kodująca stan planszy na postać znakową.
      * @return stan planszy w postaci ciągu znaków.
@@ -377,7 +389,9 @@ public class TableOnline extends JFrame {
         }
         return result;
     }
+
     // =========================================================================================
+
     /**
      * Metoda zwracająca licznik czasu.
      * @return licznik czasu.
@@ -385,10 +399,9 @@ public class TableOnline extends JFrame {
     public static Timer getTimer() {
         return timer;
     }
-
     /**
      * Metoda sprawdzająca czy zawodnik może wykonać ruch.
-     * @return
+     * @return Jeśli prawdziwe, gracz może wykonać ruch
      */
     public boolean canPlayerPlay(){
         for (int i=0; i<32; i++){
@@ -872,7 +885,6 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
     public void destroyPawn(Field start, Field end){
         int startX = start.getX(aktualnyGracz == 1);
         int startY = start.getY(aktualnyGracz == 1);

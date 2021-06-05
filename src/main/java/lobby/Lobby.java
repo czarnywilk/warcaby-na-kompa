@@ -67,7 +67,7 @@ public class Lobby extends JPanel {
                             }
                         }
 
-                        player2.setText(GameManager.getSecondPlayer() == null ?
+                        player2.setText(game.getPlayersCount() < 2 ?
                                 "-- puste --" : GameManager.getSecondPlayer().getPlayerName());
 
                         // refresh frame
@@ -76,7 +76,7 @@ public class Lobby extends JPanel {
                         Main.getFrame().repaint();
 
                         GameManager.setUserGame(game);
-                        if (game.isGameStarted() && game.getPlayersCount() > 1) {
+                        if (game.isGameStarted() && game.getPlayersCount() > 1 && Main.getFrame().isDisplayable()) {
                             new TableOnline();
                             Main.getFrame().dispose();
                             timer.cancel();

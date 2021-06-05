@@ -552,9 +552,13 @@ public class GameManager {
             Integer playerId = getUserPlayer().getId();
 
             if (game != null) {
-                if (getSecondPlayer() == null) {
+                if (game.getPlayersCount() < 2) {
                     if (deletePlayerOnQuit)
                         deletePlayer_sync(playerId);
+                    else {
+                        getUserPlayer().setGameId(null);
+                        updatePlayer_sync(getUserPlayer());
+                    }
                     deleteGame_sync(game.getId());
                 } else {
                     if (deletePlayerOnQuit)
