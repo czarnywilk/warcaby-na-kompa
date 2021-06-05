@@ -13,12 +13,26 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Klasa reprezentująca okno z listą pokoi.
+ */
 public class RoomList extends JPanel {
-
+    /**
+     * Zmienaa przetrzymująca liste pokoi
+     */
     private static ArrayList<Game> roomList = new ArrayList<>();
+    /**
+     * Scena z listą pokoi.
+     */
     private static JPanel games = new JPanel();
+    /**
+     * Zmienna przechowywująca czas jaki minał między odświeżeniem listy pokoi.
+     */
     private static Timer timer = new Timer();
 
+    /**
+     * Metoda odświeżająca liste pokoi.
+     */
     private static void refresh(){
         System.out.println("getting list of rooms...");
 
@@ -53,6 +67,9 @@ public class RoomList extends JPanel {
         }
     }
 
+    /**
+     * Konstruktor domyślny.
+     */
     public RoomList() {
         super();
 
@@ -102,10 +119,17 @@ public class RoomList extends JPanel {
         }, 0, 5000);
     }
 
+    /**
+     * Metoda zwracająca licznik czasu.
+     * @return licznik czasu.
+     */
     public static Timer getTimer() {
         return timer;
     }
 
+    /**
+     * Metoda przypisująca pokojom przycisk przenoszący do odpowiadającej jej grze.
+     */
     private static void setRoomButtons() {
 
         games.removeAll();
@@ -122,6 +146,10 @@ public class RoomList extends JPanel {
         }
     }
 
+    /**
+     * Metoda tworząca nową scene z grą.
+     * @param name nazwa gry.
+     */
     private static void createGame(String name) {
         try {
             Game game = new Game(name);
@@ -142,6 +170,11 @@ public class RoomList extends JPanel {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Metoda przenoszaco do sceny z grą.
+     * @param gameId identyfikator gry do której zawododnik ma zostać przeniesiony.
+     */
     private static void joinGame(Integer gameId) {
         Game _game = GameManager.getGame_sync(gameId);
         if (_game.getPlayersCount() < 2) {

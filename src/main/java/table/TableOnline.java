@@ -19,28 +19,73 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
-
+/**
+ * Klasa reprezentująca plansze w grze multiplayer.
+ */
 public class TableOnline extends JFrame {
-
+    /**
+     * Zmienna informująca czy został wybrany pion.
+     */
     boolean select = false;
+    /**
+     * Zmienna informująca czy możliwe jest bicie.
+     */
     boolean hit = false;
-
+    /**
+     * Tablica przycisków umożliwiająca oddziaływanie na piony na  polu planszy
+     */
     public JButton[] buttons = new JButton[32];
+    /**
+     * Tablica z polami planszy
+     */
     private static Field[] tablica = new Field[32];
+    /**
+     * Pole planszy które zostało wybrane.
+     */
     private Field selectField = new Field();
+    /**
+     * Pole planszy na które ma zostać przeniesiony pion.
+     */
     private Field targetField = new Field();
-
+    /**
+     * Ikona białego piona.
+     */
     private ImageIcon pwhite;
+    /**
+     * Ikona białej damki.
+     */
     private ImageIcon qwhite;
+    /**
+     * Ikona czarnego piona.
+     */
     private ImageIcon pblack;
+    /**
+     * Ikona czarnej damki.
+     */
     private ImageIcon qblack;
-
+    /**
+     * Kolor planszy jako zmienna znakowa.
+     */
     String tableColor = "#03A9F4";
+    /**
+     * Stan początkowej planszy w postaci ciągu znaków.
+     */
     public static String cleanBoard = "11111111000000000000000022222222";
+    /**
+     * Numer aktualengo gracza
+     */
     private int aktualnyGracz;
+    /**
+     * Klucz gracza
+     */
     private int kluczGracza;
+    /**
+     * Zmienna przechowywująca czas jaki minał między odświeżeniem listy pokoi.
+     */
     private static Timer timer = new Timer();
-
+    /**
+     * Metoda ładująca ikony.
+     */
     private void loadImages() {
         try {
             BufferedImage pawn_white = ImageIO.read(getClass().getResource("/res/images/pawn_white.png"));
@@ -56,7 +101,9 @@ public class TableOnline extends JFrame {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Konstrukotr tworzący planszę w grze online
+     */
     public TableOnline() {
         loadImages();
 
@@ -131,7 +178,9 @@ public class TableOnline extends JFrame {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Metoda wyświetlająca planszę.
+     */
     private void wyswietlPlansze() {
         for (int i = 0; i < 32; i++){
             if (kluczGracza == 1){
@@ -184,6 +233,10 @@ public class TableOnline extends JFrame {
     }
 
     // =========================================================================================
+
+    /**
+     * Metoda kończąca ture zawodnika.
+     */
     public void endTurn(){
         wyswietlPlansze();
         sendData();
@@ -193,6 +246,9 @@ public class TableOnline extends JFrame {
         }
     }
 
+    /**
+     * Metoda rozpoczynająa turę zawodnika.
+     */
     public void startTurn(){
         if (!canPlayerPlay()){
             System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " przegrał!");
@@ -201,6 +257,9 @@ public class TableOnline extends JFrame {
         System.out.println("start turn: " + aktualnyGracz);
     }
 
+    /**
+     * Metoda pobierające dane z serwera o grze
+     */
     public void getData(){
         try {
             GameManager.getGame(GameManager.getUserGame());
@@ -250,7 +309,9 @@ public class TableOnline extends JFrame {
             e.printStackTrace();
         }
     }
-
+    /**
+     * Metoda wysyłająca dane na serwera o grze.
+     */
     public void sendData(){
 
         // check if someone left before user moved
@@ -281,6 +342,9 @@ public class TableOnline extends JFrame {
         });
     }
 
+    /**
+     * Metoda oczekiwania na kolej gracza.
+     */
     public void waitForTurn(){
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -292,11 +356,20 @@ public class TableOnline extends JFrame {
         }, 0, 3000);
     }
 
+    /**
+     * Metoda odtwarzająca stan planszy na podstawie ciągu znaków.
+     * @param input ciąg znaków z zakodowaną infomarcja o planszy.
+     */
     public static void stringToBoard (String input){
         for (int i = 0; i < 32; i++){
             tablica[i].setPawn(Character.getNumericValue(input.charAt(i)));
         }
     }
+
+    /**
+     * Metoda kodująca stan planszy na postać znakową.
+     * @return stan planszy w postaci ciągu znaków.
+     */
     public static String boardToString(){
         String result = "";
         for (int i = 0; i < 32; i++){
@@ -305,11 +378,18 @@ public class TableOnline extends JFrame {
         return result;
     }
     // =========================================================================================
-
+    /**
+     * Metoda zwracająca licznik czasu.
+     * @return licznik czasu.
+     */
     public static Timer getTimer() {
         return timer;
     }
 
+    /**
+     * Metoda sprawdzająca czy zawodnik może wykonać ruch.
+     * @return
+     */
     public boolean canPlayerPlay(){
         for (int i=0; i<32; i++){
             if (tablica[i].getPawn()==aktualnyGracz){
@@ -497,21 +577,34 @@ public class TableOnline extends JFrame {
             }
         }
     }
-
+    /**
+     * Metoda zwracająca index pola.
+     * @param pole którego index ma zostać znaleziony.
+     * @return index pola.
+     */
     public int getIndex(Field pole){
         for (int i = 0; i<32; i++){
             if (tablica[i] == pole) return (aktualnyGracz==1 ? i : 31-i);
         }
         return 32;
     }
-
+    /**
+     * Metoda zwracająca obiekt pola o danym  położeniu.
+     * @param x wsółżędna x pola ktory ma zostać zwrócone.
+     * @param y wsółżędna y pola ktory ma zostać zwrócone.
+     * @return pole o danych wsółżędnych.
+     */
     public Field getFieldFromAxis(int x, int y){
         for(var pole: tablica){
             if (pole.getX(aktualnyGracz == 1) == x && pole.getY(aktualnyGracz == 1) == y) return pole;
         }
         return null;
     }
-
+    /**
+     * tedoa sprawdzająca czy możliwy jest ruch w dane pole.
+     * @param pole które jest sprawdzane
+     * @return true jesli jest możliwy ruch, false jeśli nie jest możliwy.
+     */
     public boolean pawnCanMove(Field pole){
         int x = pole.getX(aktualnyGracz == 1);
         int y = pole.getY(aktualnyGracz == 1);
@@ -527,7 +620,11 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwe jest bicie pionem
+     * @param pole na ktorym stoi pion do sprwadzenia.
+     * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
+     */
     public boolean pawnCanHit(Field pole){
         int x = pole.getX(aktualnyGracz == 1);
         int y = pole.getY(aktualnyGracz == 1);
@@ -556,7 +653,11 @@ public class TableOnline extends JFrame {
 
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwe jest ruch damkom
+     * @param pole na ktorym stoi damka do sprwadzenia.
+     * @return true jeśli jest możliwy ruch, false jeśli nie jest możliwy.
+     */
     public boolean queenCanMove(Field pole){
         int x = pole.getX(aktualnyGracz == 1);
         int y = pole.getY(aktualnyGracz == 1);
@@ -579,7 +680,11 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwe jest bicie damkom
+     * @param pole na ktorym stoi damka do sprwadzenia.
+     * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
+     */
     public boolean queenCanHit(Field pole){
         int x = pole.getX(aktualnyGracz == 1);
         int y = pole.getY(aktualnyGracz == 1);
@@ -666,7 +771,12 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest ruch z pola startowego na pole końcowe przez piona.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwy ruch, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkFieldPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(aktualnyGracz == 1);
@@ -676,7 +786,12 @@ public class TableOnline extends JFrame {
         if ((startX-1 == endX || startX+1 == endX) && startY+1 == endY) return true;
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest ruch z pola startowego na pole końcowe przez damke.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwy ruch, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkFieldQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(aktualnyGracz == 1);
@@ -697,7 +812,12 @@ public class TableOnline extends JFrame {
         }
         else return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest bicie z pola startowego na pole końcowe przez damke.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwe bicie, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkHitQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(aktualnyGracz == 1);
@@ -725,7 +845,12 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest bicie z pola startowego na pole końcowe przez piona.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwe bicie, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkHitPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(aktualnyGracz == 1);
@@ -760,14 +885,20 @@ public class TableOnline extends JFrame {
             getFieldFromAxis(startX, startY).setPawn(0);
         }
     }
-
+    /**
+     * Metoda sprwadzająca czy zawodnik ma atak do wykonania.
+     * @return treu jeśli możliwe jest bicie, false jeśli bicie nie jest możliwe.
+     */
     public boolean playerCanAttack(){
         for (int i=0; i<32; i++){
             if ((tablica[i].getPawn() == aktualnyGracz && pawnCanHit(tablica[i])) || (tablica[i].getPawn() == aktualnyGracz +2 && queenCanHit(tablica[i]))) return true;
         }
         return false;
     }
-
+    /**
+     * Metoda wykonująca się po kliknięciu w dane pole.
+     * @param ind index pola.
+     */
     public void buttonClicked(int ind){
 
         if (aktualnyGracz != kluczGracza) {

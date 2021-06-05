@@ -14,13 +14,31 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+/**
+ * Klasa startowa tworząca okna
+ */
 public class Main {
-
+    /**
+     * Zmienna odpowiadająca szerokości okna.
+     */
     private static final int WIDTH = 800;
+    /**
+     * Zmienna odpowiadająca wysokości okna.
+     */
     private static final int HEIGHT = 600;
+    /**
+     * Zmienna reprezentująca okno aplikacji.
+     */
     private static JFrame frame;
+    /**
+     * Aktualna scena.
+     */
     private static JPanel currentPanel;
 
+    /**
+     * Funkcja startowa inicjalizująca tworzenie okna.
+     * @param args
+     */
     public static void main (String[] args) {
 
         PlaceholderUtility.initialize();
@@ -29,11 +47,21 @@ public class Main {
     }
 
     // ==================== METHODS ============================
+
+    /**
+     * Metoda tworząca gracza za pośrednictwem GameMenagera.
+     * @param name nazwa gracza.
+     * @return true - jeśli udało się utworzyć gracza, false - jeżeli operacja się nie powiodła.
+     */
     static boolean createPlayer(String name) {
         GameManager.setUserPlayer(new Player(name, null));
         return GameManager.createPlayer_sync(GameManager.getUserPlayer());
     }
 
+    /**
+     * Metoda tworząca główną scenę .
+     * @return główna scena.
+     */
     private static JPanel createMainPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBorder(new EmptyBorder(2, 3, 2, 3));
@@ -69,10 +97,19 @@ public class Main {
 
         return panel;
     }
+
+    /**
+     * Getter okna aplikacji.
+     * @return okno aplikacji.
+     */
     public static JFrame getFrame() {
         return frame;
     }
 
+    /**
+     * Metoda ustawiająca aktualną scenę okna
+     * @param panel Nowa scena, która ma zostać podmieniona za aktualną.
+     */
     public static void loadPanel(JPanel panel) {
         if (currentPanel != null) {
             currentPanel.setVisible(false);
@@ -81,6 +118,11 @@ public class Main {
         if (frame != null)
             frame.add(currentPanel = panel);
     }
+
+    /**
+     * Metoda ustawiająca początkową scene okna.
+     * @param panel Scena ustawiana jako aktualna przy tworzeniu okna aplikacji.
+     */
     public static void createMainFrame(JPanel panel) {
         frame = new JFrame("Warcaby");
 

@@ -9,24 +9,62 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 
+/**
+ * Klasa reprezentująca plansze w grze na jednym urządzeniu.
+ */
 public class Table extends JFrame {
-
+    /**
+     * Zmienna przechowywująca numer aktualengo gracza.
+     */
     int nrGracza = 1;
+    /**
+     * Zmienna informująca czy został wybrany pion.
+     */
     boolean select = false;
+    /**
+     * Zmienna informująca czy możliwe jest bicie.
+     */
     boolean hit = false;
-
+    /**
+     * Tablica przycisków umożliwiająca oddziaływanie na piony na  polu planszy
+     */
     public JButton buttons[] = new JButton[32];
+    /**
+     * Tablica z polami planszy
+     */
     Field tablica[] = new Field[32];
+    /**
+     * Pole planszy które zostało wybrane.
+     */
     Field selectField = new Field();
+    /**
+     * Pole planszy na które ma zostać przeniesiony pion.
+     */
     Field targetField = new Field();
-
+    /**
+     * Ikona białego piona.
+     */
     ImageIcon pwhite;
+    /**
+     * Ikona białej damki.
+     */
     ImageIcon qwhite;
+    /**
+     * Ikona czarnego piona.
+     */
     ImageIcon pblack;
+    /**
+     * Ikona czarnej damki.
+     */
     ImageIcon qblack;
-
+    /**
+     * Kolor planszy jako zmienna znakowa.
+     */
     String tableColor = "#03A9F4";
 
+    /**
+     * Metoda ładująca ikony.
+     */
     private void loadImages() {
         try {
             BufferedImage pawn_white = ImageIO.read(getClass().getResource("/res/images/pawn_white.png"));
@@ -43,6 +81,9 @@ public class Table extends JFrame {
         }
     }
 
+    /**
+     * Konstrukotr tworzący planszę
+     */
     public Table(){
         super();
         loadImages();
@@ -91,6 +132,9 @@ public class Table extends JFrame {
         });
     }
 
+    /**
+     * Metoda wyświetlająca planszę.
+     */
     private void wyswietlPlansze() {
         for (int i = 0; i < 32; i++){
             if (nrGracza == 1){
@@ -142,6 +186,9 @@ public class Table extends JFrame {
         }
     }
 
+    /**
+     * Metoda kończąca ture
+     */
     public void endTurn(){
         if (nrGracza == 1) nrGracza=2;
         else nrGracza = 1;
@@ -151,6 +198,10 @@ public class Table extends JFrame {
         wyswietlPlansze();
     }
 
+    /**
+     * Metoda sprawdzająca czy gra się skończyła.
+     * @return true jeśli można kontynuować grę, false jeśli nie można
+     */
     public boolean canPlayerPlay(){
         for (int i=0; i<32; i++){
             if (tablica[i].getPawn()==nrGracza){
@@ -163,6 +214,10 @@ public class Table extends JFrame {
         return false;
     }
 
+    /**
+     *
+     * @param pole
+     */
     public void lightPath(Field pole){
         int index = getIndex(pole);
         int x = pole.getX(nrGracza == 1);
@@ -339,6 +394,11 @@ public class Table extends JFrame {
         }
     }
 
+    /**
+     * Metoda zwracająca index pola.
+     * @param pole którego index ma zostać znaleziony.
+     * @return index pola.
+     */
     public int getIndex(Field pole){
         for (int i = 0; i<32; i++){
             if (tablica[i] == pole) return (nrGracza==1 ? i : 31-i);
@@ -346,6 +406,12 @@ public class Table extends JFrame {
         return 32;
     }
 
+    /**
+     * Metoda zwracająca obiekt pola o danym  położeniu.
+     * @param x wsółżędna x pola ktory ma zostać zwrócone.
+     * @param y wsółżędna y pola ktory ma zostać zwrócone.
+     * @return pole o danych wsółżędnych.
+     */
     public Field getFieldFromAxis(int x, int y){
         for(Field pole: tablica){
             if (pole.getX(nrGracza == 1) == x && pole.getY(nrGracza == 1) == y) return pole;
@@ -353,6 +419,11 @@ public class Table extends JFrame {
         return null;
     }
 
+    /**
+     * tedoa sprawdzająca czy możliwy jest ruch w dane pole.
+     * @param pole które jest sprawdzane
+     * @return true jesli jest możliwy ruch, false jeśli nie jest możliwy.
+     */
     public boolean pawnCanMove(Field pole){
         int x = pole.getX(nrGracza == 1);
         int y = pole.getY(nrGracza == 1);
@@ -369,6 +440,11 @@ public class Table extends JFrame {
         return false;
     }
 
+    /**
+     * Metoda sprwadzająca czy możliwe jest bicie pionem
+     * @param pole na ktorym stoi pion do sprwadzenia.
+     * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
+     */
     public boolean pawnCanHit(Field pole){
         int x = pole.getX(nrGracza == 1);
         int y = pole.getY(nrGracza == 1);
@@ -397,7 +473,11 @@ public class Table extends JFrame {
 
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwe jest ruch damkom
+     * @param pole na ktorym stoi damka do sprwadzenia.
+     * @return true jeśli jest możliwy ruch, false jeśli nie jest możliwy.
+     */
     public boolean queenCanMove(Field pole){
         int x = pole.getX(nrGracza == 1);
         int y = pole.getY(nrGracza == 1);
@@ -420,7 +500,11 @@ public class Table extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwe jest bicie damkom
+     * @param pole na ktorym stoi damka do sprwadzenia.
+     * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
+     */
     public boolean queenCanHit(Field pole){
         int x = pole.getX(nrGracza == 1);
         int y = pole.getY(nrGracza == 1);
@@ -508,6 +592,12 @@ public class Table extends JFrame {
         return false;
     }
 
+    /**
+     * Metoda sprwadzająca czy możliwu jest ruch z pola startowego na pole końcowe przez piona.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwy ruch, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkFieldPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(nrGracza == 1);
@@ -517,7 +607,12 @@ public class Table extends JFrame {
         if ((startX-1 == endX || startX+1 == endX) && startY+1 == endY) return true;
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest ruch z pola startowego na pole końcowe przez damke.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwy ruch, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkFieldQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(nrGracza == 1);
@@ -538,7 +633,12 @@ public class Table extends JFrame {
         }
         else return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest bicie z pola startowego na pole końcowe przez damke.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwe bicie, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkHitQueen(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(nrGracza == 1);
@@ -566,7 +666,12 @@ public class Table extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda sprwadzająca czy możliwu jest bicie z pola startowego na pole końcowe przez piona.
+     * @param start pole startowe.
+     * @param end pole końcowe.
+     * @return true jeśli jest możliwe bicie, false jeśli ruch nie jest możliwy.
+     */
     public boolean checkHitPawn(Field start, Field end){
         if (end.getPawn()!=0) return false;
         int startX = start.getX(nrGracza == 1);
@@ -586,6 +691,7 @@ public class Table extends JFrame {
         return false;
     }
 
+
     public void destroyPawn(Field start, Field end){
         int startX = start.getX(nrGracza == 1);
         int startY = start.getY(nrGracza == 1);
@@ -602,6 +708,10 @@ public class Table extends JFrame {
         }
     }
 
+    /**
+     * Metoda sprwadzająca czy zawodnik ma atak do wykonania.
+     * @return treu jeśli możliwe jest bicie, false jeśli bicie nie jest możliwe.
+     */
     public boolean playerCanAttack(){
         for (int i=0; i<32; i++){
             if ((tablica[i].getPawn() == nrGracza && pawnCanHit(tablica[i])) || (tablica[i].getPawn() == nrGracza +2 && queenCanHit(tablica[i]))) return true;
@@ -609,6 +719,10 @@ public class Table extends JFrame {
         return false;
     }
 
+    /**
+     * Metoda wykonująca się po kliknięciu w dane pole.
+     * @param ind index pola.
+     */
     public void buttonClicked(int ind){
 
         int index = -1;

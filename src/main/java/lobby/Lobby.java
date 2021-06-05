@@ -14,12 +14,26 @@ import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Klasa reprezentująca pokój oczekiwania na grę.
+ */
 public class Lobby extends JPanel {
-
+    /**
+     * Zmienna przechowywująca czas jaki minał między odświeżeniem lobby.
+     */
     private static java.util.Timer timer = new Timer();
+    /**
+     * Zmienna przechowywująca komponent odpowiedzialny za wyświetlenie nazwy pierwszego z graczy.
+     */
     private static JTextField player1;
+    /**
+     * Zmienna przechowywująca komponent odpowiedzialny za wyświetlenie nazwy drugiego z graczy.
+     */
     private static JTextField player2;
 
+    /**
+     * Metoda odświeżająca stan lobby.
+     */
     private static void refresh() {
         System.out.println("getting list of players...");
 
@@ -85,10 +99,18 @@ public class Lobby extends JPanel {
         }
     }
 
+    /**
+     * Metoda zwracająca licznik czasu.
+     * @return licznik czasu.
+     */
     public static Timer getTimer() {
         return timer;
     }
 
+    /**
+     * Metoda tworząca lokalnie nowy obiekt poczekalni.
+     * @param room Nazwa nowej poczekalni
+     */
     public Lobby(String room){
         setLayout(new BorderLayout());
         setBorder(new EmptyBorder(5,5,5,5));
