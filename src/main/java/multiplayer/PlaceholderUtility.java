@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -31,6 +32,11 @@ public class PlaceholderUtility {
      * Obiekt klasy przechowującej metody HTTP.
      */
     private static JsonPlaceholderAPI placeholderInstance;
+
+    /**
+     * Statyczny obiekt klasy JFrame przeznaczony na komunikat o błędzie
+     */
+    private static JFrame frame;
 
     /**
      * Metoda inicjująca połączenie z serwerem.
@@ -88,6 +94,12 @@ public class PlaceholderUtility {
             return true;
         } catch (IOException e) {
             System.out.println("Internet is not connected");
+            frame = new JFrame();
+            JOptionPane.showMessageDialog(
+                    frame,
+                    "No internet connection.",
+                    "Connection Error", JOptionPane.ERROR_MESSAGE
+            );
             return false;
         }
     }

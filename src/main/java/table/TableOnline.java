@@ -252,6 +252,8 @@ public class TableOnline extends JFrame {
         sendData();
         if (!canPlayerPlay()){
             System.out.println("Gracz " + GameManager.getUserPlayer().getPlayerName() + " wygrał!");
+            timer.cancel();
+            timer = new Timer();
             JFrame f = new JFrame();
             JOptionPane.showMessageDialog(
                     f,
@@ -268,6 +270,8 @@ public class TableOnline extends JFrame {
         wyswietlPlansze();
         if (!canPlayerPlay()){
             System.out.println("Gracz " + GameManager.getSecondPlayer().getPlayerName() + " wygrał!");
+            timer.cancel();
+            timer = new Timer();
             JFrame f = new JFrame();
             JOptionPane.showMessageDialog(
                     f,

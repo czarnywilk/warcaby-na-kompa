@@ -63,7 +63,7 @@ public class RoomList extends JPanel {
             System.err.println("Error while casting: " + cce.getMessage());
         }
         catch (Exception e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
     }
 
