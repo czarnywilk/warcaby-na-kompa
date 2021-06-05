@@ -408,9 +408,9 @@ public class Table extends JFrame {
 
     /**
      * Metoda zwracająca obiekt pola o danym  położeniu.
-     * @param x wsółżędna x pola ktory ma zostać zwrócone.
-     * @param y wsółżędna y pola ktory ma zostać zwrócone.
-     * @return pole o danych wsółżędnych.
+     * @param x współrzędna x pola które ma zostać zwrócone.
+     * @param y współrzędna y pola które ma zostać zwrócone.
+     * @return pole o danych współrzędnych.
      */
     public Field getFieldFromAxis(int x, int y){
         for(Field pole: tablica){
@@ -420,7 +420,7 @@ public class Table extends JFrame {
     }
 
     /**
-     * tedoa sprawdzająca czy możliwy jest ruch w dane pole.
+     * Metoda sprawdzająca czy pion stojący na danym polu może się ruszyć
      * @param pole które jest sprawdzane
      * @return true jesli jest możliwy ruch, false jeśli nie jest możliwy.
      */
@@ -442,7 +442,7 @@ public class Table extends JFrame {
 
     /**
      * Metoda sprwadzająca czy możliwe jest bicie pionem
-     * @param pole na ktorym stoi pion do sprwadzenia.
+     * @param pole na którym stoi pion do sprwadzenia.
      * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
      */
     public boolean pawnCanHit(Field pole){
@@ -474,8 +474,8 @@ public class Table extends JFrame {
         return false;
     }
     /**
-     * Metoda sprwadzająca czy możliwe jest ruch damkom
-     * @param pole na ktorym stoi damka do sprwadzenia.
+     * Metoda sprwadzająca czy możliwy jest ruch damką.
+     * @param pole na którym stoi damka do sprwadzenia.
      * @return true jeśli jest możliwy ruch, false jeśli nie jest możliwy.
      */
     public boolean queenCanMove(Field pole){
@@ -501,7 +501,7 @@ public class Table extends JFrame {
         return false;
     }
     /**
-     * Metoda sprwadzająca czy możliwe jest bicie damkom
+     * Metoda sprwadzająca czy możliwe jest bicie damką
      * @param pole na ktorym stoi damka do sprwadzenia.
      * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
      */
