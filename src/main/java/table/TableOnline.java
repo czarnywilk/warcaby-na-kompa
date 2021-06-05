@@ -401,7 +401,10 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
-
+    /**
+     * Metoda podświetla możliwe ruchy figury stojącej na wybranym polu - ze szczególnym uwzględnieniem możliwości bicia
+     * @param pole pole figury, której możliwe ścieżki podświetlamy
+     */
     public void lightPath(Field pole){
         int index = getIndex(pole);
         int x = pole.getX(aktualnyGracz == 1);
