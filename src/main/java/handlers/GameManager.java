@@ -549,17 +549,17 @@ public class GameManager {
     public static void quitGame(boolean deletePlayerOnQuit) {
         try {
             Game game = null;
-            if (getUserGame() != null) {
-                game = getGame_sync(getUserGame().getId());
+            if (getUserPlayer().getGameId() != null) {
+                game = getGame_sync(getUserPlayer().getGameId());
             }
             Integer playerId = getUserPlayer().getId();
 
             if (game != null) {
+                getUserPlayer().setGameId(null);
                 if (game.getPlayersCount() < 2) {
                     if (deletePlayerOnQuit)
                         deletePlayer_sync(playerId);
                     else {
-                        getUserPlayer().setGameId(null);
                         updatePlayer_sync(getUserPlayer());
                     }
                     deleteGame_sync(game.getId());
@@ -567,7 +567,6 @@ public class GameManager {
                     if (deletePlayerOnQuit)
                         deletePlayer_sync(playerId);
                     else {
-                        getUserPlayer().setGameId(null);
                         updatePlayer_sync(getUserPlayer());
                     }
 

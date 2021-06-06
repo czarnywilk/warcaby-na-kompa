@@ -235,7 +235,8 @@ public class TableOnline extends JFrame {
         timer = new Timer();
 
         if (leaveRoom) {
-            GameManager.quitGame(false);
+            if (GameManager.getUserPlayer().getGameId() != null)
+                GameManager.quitGame(false);
             Main.createMainFrame(new RoomList());
         }
         else

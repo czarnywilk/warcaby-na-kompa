@@ -143,6 +143,13 @@ public class Lobby extends JPanel {
         startGame.setAlignmentX(Component.CENTER_ALIGNMENT);
         startGame.addActionListener(e -> {
             //TODO start online game
+
+            Game _game = GameManager.getGame_sync(GameManager.getUserGame().getId());
+            if (_game.getPlayersCount() < 2) {
+                GameManager.setSecondPlayer(null);
+                GameManager.setUserGame(_game);
+            }
+
             if (GameManager.getSecondPlayer() != null) {
                 GameManager.getUserGame().setGameStarted(true);
                 var updatedGame = GameManager.updateGame_sync(GameManager.getUserGame());
