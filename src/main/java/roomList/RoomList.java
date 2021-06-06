@@ -79,7 +79,9 @@ public class RoomList extends JPanel {
         add(label, BorderLayout.PAGE_START);
 
         // ============================= ROOMS =================================
-        games.setLayout(new BoxLayout(games, BoxLayout.Y_AXIS));
+        games.setLayout(new GridBagLayout());
+
+
 
         setRoomButtons();
         JScrollPane scroll = new JScrollPane(games);
@@ -134,15 +136,23 @@ public class RoomList extends JPanel {
 
         games.removeAll();
 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        gbc.weighty = 1;
+        gbc.anchor = GridBagConstraints.NORTH;
+        gbc.gridwidth = GridBagConstraints.REMAINDER;
+
         for (Game g: roomList){
             JButton button = new JButton(g.getGameName());
             button.setSize(new Dimension(200,50));
+            button.setPreferredSize(new Dimension(200,50));
             button.setAlignmentX(Component.CENTER_ALIGNMENT);
             button.addActionListener(e -> {
                 System.out.println("going to room: " + button.getText());
                 joinGame(g.getId());
             });
-            games.add(button);
+            games.add(button, gbc);
         }
     }
 

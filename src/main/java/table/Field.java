@@ -47,8 +47,8 @@ class Field{
     }
 
     /**
-     * Metoda zwracająca współżędną x pola
-     * @param whitePlayer parametr informujący o perspektywie gry - jeżeli ma wartoś true zwracany jest wynik z perspektywy białego gracza.
+     * Metoda zwracająca współrzędną x pola
+     * @param whitePlayer parametr informujący o perspektywie gry - jeżeli ma wartość true zwracany jest wynik z perspektywy białego gracza.
      * @return ułożenie danego pola w osi x
      */
     public int getX(boolean whitePlayer){
@@ -56,8 +56,8 @@ class Field{
         else return 9-this.x;
     }
     /**
-     * Metoda zwracająca współżędną y pola .
-     * @param whitePlayer parametr informujący o perspektywie gry - jeżeli ma wartoś true zwracany jest wynik z perspektywy białego gracza.
+     * Metoda zwracająca współrzędną y pola .
+     * @param whitePlayer parametr informujący o perspektywie gry - jeżeli ma wartość true zwracany jest wynik z perspektywy białego gracza.
      * @return ułożenie danego pola w osi y.
      */
     public int getY(boolean whitePlayer){

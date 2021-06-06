@@ -187,7 +187,7 @@ public class Table extends JFrame {
     }
 
     /**
-     * Metoda kończąca ture
+     * Metoda kończąca turę
      */
     public void endTurn(){
         if (nrGracza == 1) nrGracza=2;
@@ -667,7 +667,7 @@ public class Table extends JFrame {
         return false;
     }
     /**
-     * Metoda sprwadzająca czy możliwu jest bicie z pola startowego na pole końcowe przez piona.
+     * Metoda sprwadzająca czy możliwe jest bicie z pola startowego na pole końcowe przez piona.
      * @param start pole startowe.
      * @param end pole końcowe.
      * @return true jeśli jest możliwe bicie, false jeśli ruch nie jest możliwy.
@@ -691,7 +691,11 @@ public class Table extends JFrame {
         return false;
     }
 
-
+    /**
+     * Metoda mająca na celu "zniszczenie" wrogiej figury. Jako parametr przyjmuje dwa pola, między którymi znajduje się niszczony pionek
+     * @param start pole początkowe bijącej figury
+     * @param end pole docelowe bijącej figury
+     */
     public void destroyPawn(Field start, Field end){
         int startX = start.getX(nrGracza == 1);
         int startY = start.getY(nrGracza == 1);

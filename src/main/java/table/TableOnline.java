@@ -102,7 +102,7 @@ public class TableOnline extends JFrame {
         }
     }
     /**
-     * Konstrukotr tworzący planszę w grze online
+     * Konstruktor tworzący planszę w grze online
      */
     public TableOnline() {
         loadImages();
@@ -245,7 +245,7 @@ public class TableOnline extends JFrame {
     // =========================================================================================
 
     /**
-     * Metoda kończąca ture zawodnika.
+     * Metoda kończąca turę gracza.
      */
     public void endTurn(){
         wyswietlPlansze();
@@ -264,7 +264,7 @@ public class TableOnline extends JFrame {
         }
     }
     /**
-     * Metoda rozpoczynająa turę zawodnika.
+     * Metoda rozpoczynająa turę gracza.
      */
     public void startTurn(){
         wyswietlPlansze();
@@ -332,7 +332,7 @@ public class TableOnline extends JFrame {
         }
     }
     /**
-     * Metoda wysyłająca dane na serwera o grze.
+     * Metoda wysyłająca dane na serwer.
      */
     public void sendData(){
 
@@ -610,9 +610,9 @@ public class TableOnline extends JFrame {
     }
     /**
      * Metoda zwracająca obiekt pola o danym  położeniu.
-     * @param x wsółżędna x pola ktory ma zostać zwrócone.
-     * @param y wsółżędna y pola ktory ma zostać zwrócone.
-     * @return pole o danych wsółżędnych.
+     * @param x współrzędna x pola ktory ma zostać zwrócone.
+     * @param y współrzędna y pola ktory ma zostać zwrócone.
+     * @return pole o danych współrzędnych.
      */
     public Field getFieldFromAxis(int x, int y){
         for(var pole: tablica){
@@ -621,7 +621,7 @@ public class TableOnline extends JFrame {
         return null;
     }
     /**
-     * tedoa sprawdzająca czy możliwy jest ruch w dane pole.
+     * Metoda sprawdzająca czy możliwy jest ruch w dane pole.
      * @param pole które jest sprawdzane
      * @return true jesli jest możliwy ruch, false jeśli nie jest możliwy.
      */
@@ -642,7 +642,7 @@ public class TableOnline extends JFrame {
     }
     /**
      * Metoda sprwadzająca czy możliwe jest bicie pionem
-     * @param pole na ktorym stoi pion do sprwadzenia.
+     * @param pole na ktorym stoi pion do sprawdzenia.
      * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
      */
     public boolean pawnCanHit(Field pole){
@@ -674,7 +674,7 @@ public class TableOnline extends JFrame {
         return false;
     }
     /**
-     * Metoda sprwadzająca czy możliwe jest ruch damkom
+     * Metoda sprwadzająca czy możliwy jest ruch damką
      * @param pole na ktorym stoi damka do sprwadzenia.
      * @return true jeśli jest możliwy ruch, false jeśli nie jest możliwy.
      */
@@ -701,7 +701,7 @@ public class TableOnline extends JFrame {
         return false;
     }
     /**
-     * Metoda sprwadzająca czy możliwe jest bicie damkom
+     * Metoda sprwadzająca czy możliwe jest bicie damką
      * @param pole na ktorym stoi damka do sprwadzenia.
      * @return true jeśli jest możliwe bicie, false jeśli nie jest możliwe.
      */
@@ -889,6 +889,12 @@ public class TableOnline extends JFrame {
         }
         return false;
     }
+
+    /**
+     * Metoda mająca na celu "zniszczenie" wrogiej figury. Jako parametr przyjmuje dwa pola, między którymi znajduje się niszczony pionek
+     * @param start pole początkowe bijącej figury
+     * @param end pole docelowe bijącej figury
+     */
     public void destroyPawn(Field start, Field end){
         int startX = start.getX(aktualnyGracz == 1);
         int startY = start.getY(aktualnyGracz == 1);
@@ -906,7 +912,7 @@ public class TableOnline extends JFrame {
     }
     /**
      * Metoda sprwadzająca czy zawodnik ma atak do wykonania.
-     * @return treu jeśli możliwe jest bicie, false jeśli bicie nie jest możliwe.
+     * @return true jeśli możliwe jest bicie, false jeśli bicie nie jest możliwe.
      */
     public boolean playerCanAttack(){
         for (int i=0; i<32; i++){
