@@ -352,7 +352,9 @@ public class TableOnline extends JFrame {
         GameManager.setServerCallbackListener(new GameManager.ServerCallbackListener() {
             @Override
             public void onServerResponse(Object obj) {
-                waitForTurn();
+                if (canPlayerPlay()) {
+                    waitForTurn();
+                }
             }
 
             @Override
